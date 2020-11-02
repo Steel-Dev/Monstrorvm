@@ -1,0 +1,4 @@
+Key: 'example_colored_item'
+BaseItem: LEATHER_HELMET
+DisplayName: '&eExample Colored Item'
+Color: '#f00505'

@@ -1,0 +1,7 @@
+Key: 'example_mob_spawn_egg'
+BaseItem: GHAST_SPAWN_EGG
+DisplayName: '&eSpawn Example Mob'
+UseEffect:
+  EffectType: SPAWN_CUSTOM_MOB
+  MobID: 'example_mob'
+  ConsumeOnUse: true

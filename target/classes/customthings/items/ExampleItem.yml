@@ -1,0 +1,5 @@
+Key: 'example_item'
+BaseItem: STICK
+DisplayName: '&eExample Item'
+Lore:
+  - '&7Example!'

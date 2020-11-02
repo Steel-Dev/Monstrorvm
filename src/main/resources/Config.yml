@@ -1,0 +1,21 @@
+# Enable debug messages?
+#  WARNING: WILL cause spam in console! this is
+#   a development option, put here for ease of development.
+Debug: true
+
+# What language should the plugin use?
+Language: English
+
+UpdateCheck:
+  # Should the plugin notify OPs/Players with the plugins admin perm
+  #  when a new update is available when they join/reload the plugin?
+  MessageOnJoin: true
+  MessageOnReload: true
+
+CustomMobs:
+  # The max amount of mobs total that can be spawned in
+  #  It accounts for LOADED mobs, so mobs in loaded chunks
+  #  so, for instance, if a chunk is unloaded with 5 mobs in it,
+  #   those 5 will not account towards the mob cap
+  #    unless that chunk is loaded again.
+  MobCap: 100
