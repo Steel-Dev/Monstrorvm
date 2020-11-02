@@ -11,7 +11,7 @@
 #  EG: &cHi! <#5C040F>Hey!
 
 English:
-  Prefix: '&cMonstrorvm &7» '
+  Prefix: '&2Monstrorvm &7» '
   PlayersOnlyMsg: '&cThis command can only be executed by a player.'
   InvalidMVMobMsg: '&cThe specific mob id, &eMOBID,&c doesnt exist, or isnt registered!'
   MVMobSpawnedMsg: '&aSuccessfully spawned a MOBNAME&a!'
