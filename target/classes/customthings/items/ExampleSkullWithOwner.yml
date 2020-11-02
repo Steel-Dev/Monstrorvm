@@ -1,5 +1,0 @@
-Key: 'example_skull_owner'
-BaseItem: PLAYER_HEAD
-DisplayName: '&eExample Player Head (With Owner)'
-SkullInfo:
-  OwnerName: 'Steel_Whisper'

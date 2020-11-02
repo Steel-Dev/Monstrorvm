@@ -1,7 +1,0 @@
-Key: 'example_cmd_item'
-BaseItem: FEATHER
-DisplayName: '&eExample CustomModelData Item'
-CustomModelData: 1
-Lore:
-  - '&7This item will be a custom texture if a resource pack has'
-  - '&7a custom model data value of 1 for a FEATHER!'

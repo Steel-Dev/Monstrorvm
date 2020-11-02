@@ -1,7 +1,0 @@
-Key: 'example_item_nbt'
-BaseItem: FEATHER
-DisplayName: '&eExample NBT Item'
-NBT:
-  EXAMPLE:
-    Key: 'example'
-    Value: 'bloop'
