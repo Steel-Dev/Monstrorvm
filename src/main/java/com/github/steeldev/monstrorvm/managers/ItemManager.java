@@ -23,7 +23,7 @@ import static com.github.steeldev.monstrorvm.util.Util.getRGB;
 
 public class ItemManager {
     static Monstrorvm main = Monstrorvm.getInstance();
-    static Map<String, MVItem> mvItemMap;
+    static Map<String, MVItem> itemMap;
 
     static List<String> exampleItems = new ArrayList<>(Arrays.asList("ExampleItem",
             "ExampleFood",
@@ -36,14 +36,12 @@ public class ItemManager {
             "ExampleWeapon",
             "ExampleColoredItem"));
 
-    static List<File> loadedFiles = new ArrayList<>();
-
     public static void registerNewItem(MVItem item) {
-        if (mvItemMap == null) mvItemMap = new HashMap<>();
+        if (itemMap == null) itemMap = new HashMap<>();
 
-        if (mvItemMap.containsKey(item.key)) return;
+        if (itemMap.containsKey(item.key)) return;
 
-        mvItemMap.put(item.key, item);
+        itemMap.put(item.key, item);
 
         main.getServer().getPluginManager().registerEvents(new CustomItemBase(item.key), main);
 
@@ -52,12 +50,13 @@ public class ItemManager {
     }
 
     public static MVItem getItem(String key) {
-        if (!mvItemMap.containsKey(key)) return null;
+        if (!itemMap.containsKey(key)) return null;
 
-        return mvItemMap.get(key);
+        return itemMap.get(key);
     }
 
     public static void registerCustomItems() {
+        if (itemMap == null) itemMap = new HashMap<>();
         for (String itemString : exampleItems) {
             if (!new File("customthings/items/" + itemString + ".yml").exists())
                 main.saveResource("customthings/items/" + itemString + ".yml", true);
@@ -79,8 +78,7 @@ public class ItemManager {
             boolean invalid = false;
             FileConfiguration itemYaml = YamlConfiguration.loadConfiguration(itemFile);
 
-            if (Config.DEBUG &&
-                    !loadedFiles.contains(itemFile))
+            if (Config.DEBUG)
                 main.getLogger().info("Registering " + itemFile.getName());
 
             if (!itemYaml.contains("Key")) {
@@ -123,6 +121,9 @@ public class ItemManager {
                 item.withCustomModelData(itemYaml.getInt("CustomModelData"));
 
             if (itemYaml.contains("AttributeInfo")) {
+                if (itemYaml.getConfigurationSection("AttributeInfo").getKeys(false).size() < 1) {
+                    main.getLogger().info(colorize("&e[WARNING] You added the EntitiesToReplace module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
+                }
                 for (String entry : itemYaml.getConfigurationSection("AttributeInfo").getKeys(false)) {
                     ConfigurationSection attributeSection = itemYaml.getConfigurationSection("AttributeInfo." + entry);
                     String modName = entry.toLowerCase().replace("generic_", "generic.");
@@ -136,12 +137,19 @@ public class ItemManager {
                         main.getLogger().info(colorize("&c[ERROR] The specified Attribute for " + entry + " in " + itemFile.getName() + " is invalid!"));
                         invalid = true;
                     }
+                    if (!attributeSection.contains("Value")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Value for the AttributeModifier " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
                     double value = attributeSection.getDouble("Value");
                     item.withAttribute(new ItemAttributeInfo(modName, slot, attribute, value));
                 }
             }
 
             if (itemYaml.contains("EnchantInfo")) {
+                if (itemYaml.getConfigurationSection("EnchantInfo").getKeys(false).size() < 1) {
+                    main.getLogger().info(colorize("&e[WARNING] You added the EnchantInfo module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                }
                 for (String entry : itemYaml.getConfigurationSection("EnchantInfo").getKeys(false)) {
                     ConfigurationSection enchantSection = itemYaml.getConfigurationSection("EnchantInfo." + entry);
                     Enchantment enchant = Enchantment.getByName(entry);
@@ -149,7 +157,11 @@ public class ItemManager {
                         main.getLogger().info(colorize("&c[ERROR] The specified Enchant for " + entry + " in " + itemFile.getName() + " is invalid!"));
                         invalid = true;
                     }
-                    int level = enchantSection.getInt("Value");
+                    if (!enchantSection.contains("Level")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Level for the Enchant " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
+                    int level = enchantSection.getInt("Level");
 
                     item.withEnchant(new ItemEnchantInfo(enchant, level));
                 }
@@ -161,11 +173,26 @@ public class ItemManager {
                 List<MVPotionEffect> potionEffectList = new ArrayList<>();
                 ConfigurationSection potEffectSection = itemYaml.getConfigurationSection("UseEffect.PotionEffects");
                 if (potEffectSection != null) {
+                    if (potEffectSection.getKeys(false).size() < 1) {
+                        main.getLogger().info(colorize("&e[WARNING] You added the PotionEffects module to the UseEffect module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                    }
                     for (String entry : potEffectSection.getKeys(false)) {
                         ConfigurationSection potSection = itemYaml.getConfigurationSection("UseEffect.PotionEffects." + entry);
                         PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                         if (potionEffectType == null) {
                             main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                            invalid = true;
+                        }
+                        if (!potSection.contains("Amplifier")) {
+                            main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            invalid = true;
+                        }
+                        if (!potSection.contains("Duration")) {
+                            main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            invalid = true;
+                        }
+                        if (!potSection.contains("Chance")) {
+                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
                             invalid = true;
                         }
                         int amp = potSection.getInt("Amplifier");
@@ -183,11 +210,26 @@ public class ItemManager {
 
             if (itemYaml.contains("AttackEffects")) {
                 List<MVPotionEffect> potionEffectList = new ArrayList<>();
+                if (itemYaml.getConfigurationSection("AttackEffects").getKeys(false).size() < 1) {
+                    main.getLogger().info(colorize("&e[WARNING] You added the AttackEffects module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                }
                 for (String entry : itemYaml.getConfigurationSection("AttackEffects").getKeys(false)) {
                     ConfigurationSection potSection = itemYaml.getConfigurationSection("AttackEffects." + entry);
                     PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                     if (potionEffectType == null) {
                         main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                        invalid = true;
+                    }
+                    if (!potSection.contains("Amplifier")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
+                    if (!potSection.contains("Duration")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
+                    if (!potSection.contains("Chance")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
                         invalid = true;
                     }
                     int amp = potSection.getInt("Amplifier");
@@ -206,11 +248,26 @@ public class ItemManager {
                 String effectDisplay = itemYaml.getString("ConsumeEffect.EffectDisplay");
 
                 List<MVPotionEffect> potionEffectList = new ArrayList<>();
+                if (itemYaml.getConfigurationSection("ConsumeEffect.PotionEffects").getKeys(false).size() < 1) {
+                    main.getLogger().info(colorize("&e[WARNING] You added the PotionEffects module to the ConsumeEffect module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                }
                 for (String entry : itemYaml.getConfigurationSection("ConsumeEffect.PotionEffects").getKeys(false)) {
                     ConfigurationSection potSection = itemYaml.getConfigurationSection("ConsumeEffect.PotionEffects." + entry);
                     PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                     if (potionEffectType == null) {
                         main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                        invalid = true;
+                    }
+                    if (!potSection.contains("Amplifier")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
+                    if (!potSection.contains("Duration")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
+                    if (!potSection.contains("Chance")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
                         invalid = true;
                     }
                     int amp = potSection.getInt("Amplifier");
@@ -227,8 +284,20 @@ public class ItemManager {
 
             if (itemYaml.contains("NBT")) {
                 List<ItemNBTCompound> nbtList = new ArrayList<>();
+                if (itemYaml.getConfigurationSection("NBT").getKeys(false).size() < 1) {
+                    main.getLogger().info(colorize("&e[WARNING] You added the NBT module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                }
                 for (String entry : itemYaml.getConfigurationSection("NBT").getKeys(false)) {
                     ConfigurationSection compoundSec = itemYaml.getConfigurationSection("NBT." + entry);
+
+                    if (!compoundSec.contains("Key")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Key for the NBTCompound " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
+                    if (!compoundSec.contains("Value")) {
+                        main.getLogger().info(colorize("&c[ERROR] You are missing the Value for the NBTCompound " + entry + "! Error occured in -  " + itemFile.getName()));
+                        invalid = true;
+                    }
 
                     String key = compoundSec.getString("Key");
                     Object value = compoundSec.get("Value");
@@ -252,6 +321,14 @@ public class ItemManager {
             }
 
             if (itemYaml.contains("SkullInfo")) {
+                if (itemYaml.contains("SkullInfo.OwnerName") && itemYaml.contains("SkullInfo.Base64")) {
+                    main.getLogger().info(colorize("&c[ERROR] You can only have Base64 or OwnerName in SkullInfo, not both! Error occured in -  " + itemFile.getName()));
+                    invalid = true;
+                } else if (!itemYaml.contains("SkullInfo.OwnerName") && !itemYaml.contains("SkullInfo.Base64")) {
+                    main.getLogger().info(colorize("&c[ERROR] You must either have Base64 or OwnerName in SkullInfo! Found neither! Error occured in -  " + itemFile.getName()));
+                    invalid = true;
+                }
+
                 if (itemYaml.contains("SkullInfo.OwnerName"))
                     item.withSkullOwnerByName(itemYaml.getString("SkullInfo.OwnerName"));
                 if (itemYaml.contains("SkullInfo.Base64"))
@@ -259,17 +336,21 @@ public class ItemManager {
             }
 
             if (!invalid) {
-                registerNewItem(item);
-                loadedFiles.add(itemFile);
-            }
-            else {
+                if (itemMap.get(item.key) != null &&
+                        itemMap.containsKey(item.key)) {
+                    itemMap.remove(item.key);
+                    itemMap.put(item.key, item);
+                    main.getLogger().info("&aThe custom item " + itemFile.getName() + " has successfully been updated!");
+                } else
+                    registerNewItem(item);
+            } else {
                 main.getLogger().info(colorize("&e[WARNING] The custom item " + itemFile.getName() + " has not been registered due to errors!"));
             }
         }
     }
 
     public static List<String> getValidItemList() {
-        if (mvItemMap == null) return new ArrayList<>();
-        return new ArrayList<>(mvItemMap.keySet());
+        if (itemMap == null) return new ArrayList<>();
+        return new ArrayList<>(itemMap.keySet());
     }
 }

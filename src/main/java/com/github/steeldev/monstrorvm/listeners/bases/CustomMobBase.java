@@ -36,6 +36,7 @@ public class CustomMobBase implements Listener {
         if (world == null) return;
         if (mob.validSpawnWorlds == null || !mob.validSpawnWorlds.contains(world.getEnvironment())) return;
         if (event.getEntity().getCustomName() != null) return;
+        if (event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING)) return;
         if (mob.entityToReplace == null ||
                 mob.entityToReplace.size() < 1 ||
                 !mob.entityToReplace.contains(event.getEntityType())) return;
@@ -56,8 +57,7 @@ public class CustomMobBase implements Listener {
         if (mob == null) return;
         if (!event.getEntityType().equals(mob.baseEntity)) return;
         if (event.getEntity().getCustomName() == null) return;
-        if (!event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
-            return;
+        if (!event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING)) return;
         if (!ChatColor.stripColor(event.getEntity().getCustomName()).equals(mob.getUncoloredName())) return;
 
         if (mob.dropsToRemove != null && mob.dropsToRemove.size() > 0)
@@ -85,8 +85,7 @@ public class CustomMobBase implements Listener {
         if (mob == null) return;
         if (!event.getDamager().getType().equals(mob.baseEntity)) return;
         if (event.getDamager().getCustomName() == null) return;
-        if (!event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
-            return;
+        if (!event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING)) return;
         if (!ChatColor.stripColor(event.getDamager().getCustomName()).equals(mob.getUncoloredName())) return;
 
         if (event.getEntity() instanceof LivingEntity) {

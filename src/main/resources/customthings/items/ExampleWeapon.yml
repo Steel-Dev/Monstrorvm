@@ -5,9 +5,14 @@ AttributeInfo:
   GENERIC_ATTACK_DAMAGE:
     Value: 10
     Slot: HAND
+  GENERIC_ATTACK_SPEED:
+    Value: 1
+    Slot: HAND
 EnchantInfo:
   DAMAGE_ALL:
-    Value: 2
+    Level: 2
+  FIRE_ASPECT:
+    Level: 2
 AttackEffects:
   POISON:
     Amplifier: 10

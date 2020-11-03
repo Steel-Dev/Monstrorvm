@@ -1,9 +1,9 @@
 Key: 'example_food'
 BaseItem: PORKCHOP
 DisplayName: '&eExample Food'
-HungerValue: 5
 ConsumeEffect:
   EffectDisplay: '&cExample'
+  HungerValue: 5
   PotionEffects:
     REGENERATION:
       Amplifier: 2

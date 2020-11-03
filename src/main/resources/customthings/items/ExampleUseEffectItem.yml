@@ -10,4 +10,8 @@ UseEffect:
       Amplifier: 10
       Duration: 500
       Chance: 10
+    DAMAGE_RESISTANCE:
+      Amplifier: 5
+      Duration: 500
+      Chance: 5
   ConsumeOnUse: true

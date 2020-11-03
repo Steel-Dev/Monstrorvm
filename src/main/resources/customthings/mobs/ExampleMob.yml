@@ -32,7 +32,7 @@ HitEffects:
     Chance: 20
 BurnInfo:
   Enabled: true
-  Time: 9999999
+  Time: 2147483647
 DeathExplosion:
   Enabled: true
   Chance: 10
