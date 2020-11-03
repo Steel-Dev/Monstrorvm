@@ -5,6 +5,7 @@ import com.github.steeldev.monstrorvm.listeners.bases.CustomItemBase;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.items.*;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
+import jdk.internal.jline.internal.Nullable;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -13,6 +14,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
@@ -36,7 +38,7 @@ public class ItemManager {
             "ExampleWeapon",
             "ExampleColoredItem"));
 
-    public static void registerNewItem(MVItem item) {
+    public static void registerNewItem(MVItem item, @Nullable Plugin source) {
         if (itemMap == null) itemMap = new HashMap<>();
 
         if (itemMap.containsKey(item.key)) return;
@@ -45,8 +47,12 @@ public class ItemManager {
 
         main.getServer().getPluginManager().registerEvents(new CustomItemBase(item.key), main);
 
-        if (Config.DEBUG)
-            main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered.", item.key));
+        if (Config.DEBUG) {
+            if(source != null)
+                main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered by " + source.getName() + ".", item.key));
+            else
+                main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered.", item.key));
+        }
     }
 
     public static MVItem getItem(String key) {
@@ -342,7 +348,7 @@ public class ItemManager {
                     itemMap.put(item.key, item);
                     main.getLogger().info("&aThe custom item " + itemFile.getName() + " has successfully been updated!");
                 } else
-                    registerNewItem(item);
+                    registerNewItem(item, null);
             } else {
                 main.getLogger().info(colorize("&e[WARNING] The custom item " + itemFile.getName() + " has not been registered due to errors!"));
             }

@@ -13,6 +13,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public class MobManager {
         spawnedCustomMobs = new HashMap<>();
     }
 
-    public static void registerNewMob(MVMob mob) {
+    public static void registerNewMob(MVMob mob, Plugin source) {
         if (mobMap == null) mobMap = new HashMap<>();
 
         if (mobMap.containsKey(mob.key)) return;
@@ -43,8 +44,12 @@ public class MobManager {
 
         main.getServer().getPluginManager().registerEvents(new CustomMobBase(mob.key), main);
 
-        if (Config.DEBUG)
-            main.getLogger().info(String.format("&aCustom mob &emonstrorvm:%s&a has been &2registered.", mob.key));
+        if (Config.DEBUG) {
+            if(source != null)
+                main.getLogger().info(String.format("&aCustom mob &emonstrorvm:%s&a has been &2registered by " + source.getName() + ".", mob.key));
+            else
+                main.getLogger().info(String.format("&aCustom mob &emonstrorvm:%s&a has been &2registered.", mob.key));
+        }
     }
 
     public static MVMob getMob(String key) {
@@ -590,7 +595,7 @@ public class MobManager {
                     mobMap.put(mob.key, mob);
                     main.getLogger().info("&aThe custom mob " + mobFile.getName() + " has successfully been updated!");
                 } else
-                    registerNewMob(mob);
+                    registerNewMob(mob, null);
             } else {
                 main.getLogger().info(colorize("&e[WARNING] The custom mob " + mobFile.getName() + " has not been registered due to errors!"));
             }
