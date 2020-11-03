@@ -315,6 +315,9 @@ public class MobManager {
                     if (entrySec.contains("MaxAmount"))
                         item.maxAmount = entrySec.getInt("MaxAmount");
 
+                    if(entrySec.contains("Damaged"))
+                        item.damaged = entrySec.getBoolean("Damaged");
+
                     if (chance == (int) chance)
                         item.chance = (int) chance;
                     else
@@ -359,6 +362,9 @@ public class MobManager {
 
                     if (entrySec.contains("MaxAmount"))
                         item.maxAmount = entrySec.getInt("MaxAmount");
+
+                    if(entrySec.contains("Damaged"))
+                        item.damaged = entrySec.getBoolean("Damaged");
 
                     if (chance == (int) chance)
                         item.chance = (int) chance;

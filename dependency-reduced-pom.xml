@@ -78,10 +78,6 @@
       <url>https://jitpack.io</url>
     </repository>
     <repository>
-      <id>shanebeestudios-repo</id>
-      <url>https://shanebeestudios.com/maven/</url>
-    </repository>
-    <repository>
       <id>skullcreator-repo</id>
       <url>https://dl.bintray.com/deanveloper/SkullCreator</url>
     </repository>
@@ -90,7 +86,7 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.16.3-R0.1-SNAPSHOT</version>
+      <version>1.16.4-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>

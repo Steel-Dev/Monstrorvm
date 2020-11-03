@@ -44,7 +44,7 @@ public class Monstrorvm extends JavaPlugin {
         long start = System.currentTimeMillis();
         instance = this;
 
-        MinecraftVersion.logger = getLogger();
+        MinecraftVersion.replaceLogger(getLogger());
 
         loadNBTAPI();
 
@@ -94,7 +94,8 @@ public class Monstrorvm extends JavaPlugin {
     public void loadNBTAPI() {
         getLogger().info("&aLoading NBT-API...");
         NBTItem loadingItem = new NBTItem(new ItemStack(Material.STONE));
-        loadingItem.mergeCompound(new NBTContainer("{}"));
+        loadingItem.addCompound("Glob");
+        loadingItem.setString("Glob", "yes");
         getLogger().info("&aSuccessfully loaded NBT-API!");
     }
 

@@ -44,6 +44,7 @@ Drops:
   CustomItemDrop:
     Item: 'monstrorvm:example_weapon'
     Chance: 40
+    Damaged: true
   VanillaItemDrop:
     Item: BEEF
     Chance: 30
