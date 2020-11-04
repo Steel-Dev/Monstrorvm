@@ -3,6 +3,8 @@
 #   a development option, put here for ease of development.
 Debug: true
 
+ExamplesEnabled: true
+
 # What language should the plugin use?
 Language: English
 

@@ -1,6 +1,7 @@
 package com.github.steeldev.monstrorvm.util.items;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
+import com.github.steeldev.monstrorvm.util.items.recipe.ItemRecipe;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import dev.dbassett.skullcreator.SkullCreator;
@@ -37,6 +38,9 @@ public class MVItem {
     public List<ItemNBTCompound> nbtCompoundList;
     public Color color;
     public SkullInfo skullInfo;
+
+    public List<ItemRecipe> recipes;
+
     Monstrorvm main = Monstrorvm.getInstance();
 
     public MVItem(String key,
@@ -110,6 +114,12 @@ public class MVItem {
     public MVItem withAttackEffect(MVPotionEffect effect) {
         if (this.attackEffect == null) this.attackEffect = new ArrayList<>();
         this.attackEffect.add(effect);
+        return this;
+    }
+
+    public MVItem withRecipe(ItemRecipe recipe){
+        if(this.recipes == null) this.recipes = new ArrayList<>();
+        this.recipes.add(recipe);
         return this;
     }
 

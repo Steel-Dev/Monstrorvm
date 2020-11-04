@@ -17,6 +17,7 @@ import static com.github.steeldev.monstrorvm.util.Util.formalizedString;
 
 public class Config {
     // Config stuff
+    public static boolean EXAMPLES_ENABLED;
     public static boolean DEBUG;
     public static String SELECTED_LANGUAGE;
     public static boolean NEW_UPDATE_MESSAGE_ON_JOIN;
@@ -86,6 +87,7 @@ public class Config {
     }
 
     private void loadConfigs() {
+        EXAMPLES_ENABLED = config.getBoolean("ExamplesEnabled");
         DEBUG = config.getBoolean("Debug");
         SELECTED_LANGUAGE = formalizedString(config.getString("Language"));
         CUSTOM_MOB_CAP = config.getInt("CustomMobs.MobCap");

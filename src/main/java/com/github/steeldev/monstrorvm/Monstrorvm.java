@@ -9,7 +9,6 @@ import com.github.steeldev.monstrorvm.util.MVLogger;
 import com.github.steeldev.monstrorvm.util.UpdateCheck;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.config.Lang;
-import de.tr7zw.changeme.nbtapi.NBTContainer;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.bstats.bukkit.Metrics;

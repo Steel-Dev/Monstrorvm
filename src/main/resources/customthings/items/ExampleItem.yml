@@ -3,3 +3,38 @@ BaseItem: STICK
 DisplayName: '&eExample Item'
 Lore:
   - '&7Example!'
+Recipes:
+  CRAFTING:
+    SHAPED:
+      Pattern:
+        - ' I '
+        - 'I I'
+        - ' S '
+      Ingredients:
+        I: IRON_INGOT
+        S: STICK
+      Amount: 1
+    SHAPELESS:
+      Ingredients:
+        I: GOLD_INGOT
+        S: STICK
+      Amount: 1
+  SMELTING:
+    FURNACE:
+      Result: 'monstrorvm:example_food'
+      Time: 100
+      EXP: 100
+      Amount: 1
+    SMOKER:
+      Result: 'monstrorvm:example_food'
+      Time: 50
+      EXP: 10
+      Amount: 1
+    BLASTING:
+      Result: 'monstrorvm:example_food'
+      Time: 50
+      EXP: 10
+      Amount: 1
+  SMITHING:
+    ItemNeeded: IRON_INGOT
+    BaseMat: WOODEN_SWORD
