@@ -60,7 +60,7 @@ public class Monstrorvm extends JavaPlugin {
 
         getLogger().info(String.format("&aSuccessfully enabled &2%s &ain &e%s Seconds&a.", getDescription().getVersion(), (float) (System.currentTimeMillis() - start) / 1000));
 
-        //checkForNewVersion();
+        checkForNewVersion();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class Monstrorvm extends JavaPlugin {
 
     public void checkForNewVersion() {
         getLogger().info("&e&oChecking for a new version...");
-        new UpdateCheck(this, 84526).getVersion(version -> {
+        new UpdateCheck(this, 85464).getVersion(version -> {
             int latestVersion = Integer.parseInt(version.replaceAll("\\.", ""));
             int currentVersion = Integer.parseInt(this.getDescription().getVersion().replaceAll("\\.", ""));
 
@@ -85,7 +85,7 @@ public class Monstrorvm extends JavaPlugin {
                 outdated = true;
                 newVersion = version;
                 getLogger().info(String.format("&a&oA new version is available! &7&o(Current: %s, Latest: %s)", this.getDescription().getVersion(), version));
-                getLogger().info("&e&ohttps://www.spigotmc.org/resources/better-netherite.84526/");
+                getLogger().info("&e&ohttps://www.spigotmc.org/resources/monstrorvm.85464/");
             }
         });
     }
