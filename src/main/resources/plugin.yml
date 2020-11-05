@@ -4,6 +4,7 @@ api-version: '1.16'
 main: com.github.steeldev.monstrorvm.Monstrorvm
 description: A plugin that allows users to create custom items and mobs!
 author: Steel_Dev
+softdepend: [ Skript ]
 commands:
   monstrorvmreload:
     description: Reload the configuration.

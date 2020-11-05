@@ -87,7 +87,7 @@ public class CustomMobBase implements Listener {
         if (mob == null) return;
         if (!event.getDamager().getType().equals(mob.baseEntity)) return;
         if (event.getDamager().getCustomName() == null) return;
-        if (!event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
+        if (!event.getDamager().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
             return;
         if (!ChatColor.stripColor(event.getDamager().getCustomName()).equals(mob.getUncoloredName())) return;
 

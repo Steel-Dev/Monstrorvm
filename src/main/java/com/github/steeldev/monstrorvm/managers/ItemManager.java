@@ -73,18 +73,18 @@ public class ItemManager {
                 main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered.", item.key));
         }
 
-        if(item.recipes != null){
-            for (ItemRecipe recipe : item.recipes){
-                if(recipe instanceof ItemCraftingRecipe){
+        if (item.recipes != null) {
+            for (ItemRecipe recipe : item.recipes) {
+                if (recipe instanceof ItemCraftingRecipe) {
                     ItemCraftingRecipe craftRec = (ItemCraftingRecipe) recipe;
-                    RecipeManager.addCraftingRecipe(item.key+"_"+craftRec.craftType.name(),
+                    RecipeManager.addCraftingRecipe(item.key + "_" + craftRec.craftType.name(),
                             craftRec.craftType,
                             new RecipeChoice.ExactChoice(item.getItem(false)),
                             craftRec.resultAmount,
                             craftRec.craftingPattern,
                             craftRec.craftingIngredients);
                 }
-                if(recipe instanceof ItemSmeltingRecipe) {
+                if (recipe instanceof ItemSmeltingRecipe) {
                     ItemSmeltingRecipe smeltRec = (ItemSmeltingRecipe) recipe;
 
                     Material result = null;
@@ -116,7 +116,7 @@ public class ItemManager {
                             smeltRec.smeltEXP,
                             smeltRec.smeltTime);
                 }
-                if(recipe instanceof ItemSmithingRecipe){
+                if (recipe instanceof ItemSmithingRecipe) {
                     ItemSmithingRecipe smithingRec = (ItemSmithingRecipe) recipe;
 
                     ItemStack result = item.getItem(false);
@@ -129,31 +129,29 @@ public class ItemManager {
                     Material additionMat = null;
                     RecipeChoice additionChoice;
 
-                    if(smithingRec.smithingBaseMat.startsWith("monstrorvm:")){
+                    if (smithingRec.smithingBaseMat.startsWith("monstrorvm:")) {
                         baseStack = ItemManager.getItem(smithingRec.smithingBaseMat.replace("monstrorvm:", "")).getItem(false);
-                    }
-                    else{
+                    } else {
                         Material resMat = Material.valueOf(smithingRec.smithingBaseMat);
-                        if(resMat == null){
+                        if (resMat == null) {
                             main.getLogger().info("&c[ERROR] Base material for SMITHING recipe is invalid! - Error occured in: " + item.toString());
                         }
                         baseMat = resMat;
                     }
                     baseChoice = (baseStack == null) ? new RecipeChoice.MaterialChoice(baseMat) : new RecipeChoice.ExactChoice(baseStack);
 
-                    if(smithingRec.smithingItemNeeded.startsWith("monstrorvm:")){
+                    if (smithingRec.smithingItemNeeded.startsWith("monstrorvm:")) {
                         additionStack = ItemManager.getItem(smithingRec.smithingItemNeeded.replace("monstrorvm:", "")).getItem(false);
-                    }
-                    else{
+                    } else {
                         Material resMat = Material.valueOf(smithingRec.smithingItemNeeded);
-                        if(resMat == null){
+                        if (resMat == null) {
                             main.getLogger().info("&c[ERROR] Addition material for SMITHING recipe is invalid! - Error occured in: " + item.toString());
                         }
                         additionMat = resMat;
                     }
                     additionChoice = (additionStack == null) ? new RecipeChoice.MaterialChoice(additionMat) : new RecipeChoice.ExactChoice(additionStack);
 
-                    RecipeManager.addSmithingRecipe(item.key+"_SMITHING",
+                    RecipeManager.addSmithingRecipe(item.key + "_SMITHING",
                             result,
                             baseChoice,
                             additionChoice);
@@ -172,7 +170,7 @@ public class ItemManager {
         if (itemMap == null) itemMap = new HashMap<>();
         for (String itemString : exampleItems) {
             if (Config.EXAMPLES_ENABLED) {
-                File exampItemFile = new File(main.getDataFolder(),"customthings/items/" + itemString + ".yml");
+                File exampItemFile = new File(main.getDataFolder(), "customthings/items/" + itemString + ".yml");
                 if (!exampItemFile.exists())
                     main.saveResource("customthings/items/" + itemString + ".yml", false);
             }
@@ -474,7 +472,7 @@ public class ItemManager {
                                     main.getLogger().info(colorize("&e[WARNING] You specified the CRAFTING section in the Recipes Module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
                                     invalid = true;
                                 }
-                                for(String key : recipeSec.getKeys(false)) {
+                                for (String key : recipeSec.getKeys(false)) {
                                     if (key.contains("SHAPED")) {
                                         ConfigurationSection shapedSec = recipeSec.getConfigurationSection("SHAPED");
                                         if (!shapedSec.contains("Pattern")) {
@@ -579,7 +577,7 @@ public class ItemManager {
                                     main.getLogger().info(colorize("&e[WARNING] You specified the SMELTING section in the Recipes Module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
                                     invalid = true;
                                 }
-                                for(String key : recipeSec.getKeys(false)) {
+                                for (String key : recipeSec.getKeys(false)) {
                                     if (key.contains("FURNACE")) {
                                         ConfigurationSection furnaceSec = recipeSec.getConfigurationSection("FURNACE");
                                         String result = furnaceSec.getString("Result");
@@ -614,7 +612,7 @@ public class ItemManager {
                                 String itemNeeded = recipeSec.getString("ItemNeeded");
                                 String baseMat = recipeSec.getString("BaseMat");
 
-                                item.withRecipe(new ItemSmithingRecipe(itemNeeded,baseMat));
+                                item.withRecipe(new ItemSmithingRecipe(itemNeeded, baseMat));
                                 break;
                             default:
                                 throw new IllegalStateException("Unexpected value: " + type);

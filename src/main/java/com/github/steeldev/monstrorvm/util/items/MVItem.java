@@ -117,8 +117,8 @@ public class MVItem {
         return this;
     }
 
-    public MVItem withRecipe(ItemRecipe recipe){
-        if(this.recipes == null) this.recipes = new ArrayList<>();
+    public MVItem withRecipe(ItemRecipe recipe) {
+        if (this.recipes == null) this.recipes = new ArrayList<>();
         this.recipes.add(recipe);
         return this;
     }

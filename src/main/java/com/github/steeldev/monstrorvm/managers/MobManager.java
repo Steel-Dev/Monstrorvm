@@ -62,7 +62,7 @@ public class MobManager {
         if (mobMap == null) mobMap = new HashMap<>();
         for (String mobString : exampleMobs) {
             if (Config.EXAMPLES_ENABLED) {
-                File exampMobFile = new File(main.getDataFolder(),"customthings/mobs/" + mobString + ".yml");
+                File exampMobFile = new File(main.getDataFolder(), "customthings/mobs/" + mobString + ".yml");
                 if (!exampMobFile.exists())
                     main.saveResource("customthings/mobs/" + mobString + ".yml", false);
             }

@@ -3,6 +3,7 @@ package com.github.steeldev.monstrorvm.util.mobs;
 import com.github.steeldev.monstrorvm.util.misc.MVParticle;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
 import com.github.steeldev.monstrorvm.util.misc.MVSound;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -12,6 +13,10 @@ public class MobTargetEffect {
     public MVSound targetSound;
     public List<MVPotionEffect> selfEffects;
     public List<MVPotionEffect> targetEffects;
+
+    public MobTargetEffect(int chance) {
+        this.chance = chance;
+    }
 
     public MobTargetEffect(int chance,
                            MVParticle targetParticle,

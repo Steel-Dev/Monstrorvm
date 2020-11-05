@@ -1,7 +1,11 @@
 package com.github.steeldev.monstrorvm.util;
 
+import com.github.steeldev.monstrorvm.Monstrorvm;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Random;
@@ -14,6 +18,8 @@ public class Util {
     private static final String NBTAPI_PREFIX = "&7[&2NBT&aAPI&7]";
 
     public static Random rand = new Random();
+
+    static Monstrorvm main = Monstrorvm.getInstance();
 
     public static String colorize(String string) {
         Matcher matcher = HEX_PATTERN.matcher(string);
@@ -69,5 +75,13 @@ public class Util {
 
     public static void log(String log) {
         Bukkit.getConsoleSender().sendMessage(colorize(PREFIX + log));
+    }
+
+    // This is your fault Skript. y u no have method to get Bukkits EntityType from your EntityType >:C
+    public static EntityType convertEntityTypeFromSkriptToBukkit(ch.njol.skript.entity.EntityType entity){
+        for(EntityType type : EntityType.values()){
+            if(type.getEntityClass() == entity.data.getType()) return type;
+        }
+        return null;
     }
 }

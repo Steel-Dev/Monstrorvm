@@ -3,7 +3,6 @@ package com.github.steeldev.monstrorvm.managers;
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.items.recipe.types.CraftType;
-import com.github.steeldev.monstrorvm.util.items.recipe.types.ItemRecipeType;
 import com.github.steeldev.monstrorvm.util.items.recipe.types.SmeltType;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
@@ -11,7 +10,9 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.*;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class RecipeManager {
 
@@ -85,7 +86,7 @@ public class RecipeManager {
 
         Recipe recToAdd;
 
-        switch(type){
+        switch (type) {
             case SHAPED:
                 recToAdd = new ShapedRecipe(craftingRecKey, resultItem);
                 ((ShapedRecipe) recToAdd).shape(rows.get(0), rows.get(1), rows.get(2));
@@ -117,7 +118,7 @@ public class RecipeManager {
 
         Recipe recToAdd;
 
-        switch(type){
+        switch (type) {
             case SHAPED:
                 recToAdd = new ShapedRecipe(craftingRecKey, resultItem);
                 ((ShapedRecipe) recToAdd).shape(rows.get(0), rows.get(1), rows.get(2));

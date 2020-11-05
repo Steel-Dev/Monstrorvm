@@ -1,5 +1,7 @@
 package com.github.steeldev.monstrorvm;
 
+import ch.njol.skript.Skript;
+import ch.njol.skript.SkriptAddon;
 import com.github.steeldev.monstrorvm.commands.admin.*;
 import com.github.steeldev.monstrorvm.listeners.inventory.MVtemListInventory;
 import com.github.steeldev.monstrorvm.listeners.world.MVWorldListener;
@@ -12,11 +14,15 @@ import com.github.steeldev.monstrorvm.util.config.Lang;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 public class Monstrorvm extends JavaPlugin {
@@ -27,6 +33,9 @@ public class Monstrorvm extends JavaPlugin {
     public String newVersion;
 
     public Logger logger;
+
+    SkriptAddon monstrorvmAddon;
+    Plugin skript;
 
     public static Monstrorvm getInstance() {
         return instance;
@@ -58,6 +67,24 @@ public class Monstrorvm extends JavaPlugin {
 
         enableMetrics();
 
+        if (loadSkript() != null) {
+            skript = loadSkript();
+            if (skript.isEnabled()) {
+                getLogger().info("&aFound &eSkript " + skript.getDescription().getVersion() + "&a! Skript integration enabled!");
+
+                monstrorvmAddon = Skript.registerAddon(this);
+
+                try {
+                    monstrorvmAddon.loadClasses("com.github.steeldev.monstrorvm.skript", "elements");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                getLogger().info("&aSuccessfully registered as a Skript addon.");
+            } else
+                getLogger().info("&cFound &eSkript " + skript.getDescription().getVersion() + ", &cbut it's disabled! Skript integration disabled!");
+        } else
+            getLogger().info("&cCould not find &eSkript &con the server! Skript integration disabled!");
+
         getLogger().info(String.format("&aSuccessfully enabled &2%s &ain &e%s Seconds&a.", getDescription().getVersion(), (float) (System.currentTimeMillis() - start) / 1000));
 
         checkForNewVersion();
@@ -67,6 +94,10 @@ public class Monstrorvm extends JavaPlugin {
     public void onDisable() {
         getLogger().info("&cSuccessfully disabled!");
         instance = null;
+    }
+
+    public Plugin loadSkript() {
+        return Bukkit.getServer().getPluginManager().getPlugin("Skript");
     }
 
     public void checkForNewVersion() {
@@ -106,8 +137,20 @@ public class Monstrorvm extends JavaPlugin {
     public void enableMetrics() {
         Metrics metrics = new Metrics(this, 9288);
 
-        if (metrics.isEnabled())
+        if (metrics.isEnabled()) {
             getLogger().info("&7Starting Metrics. Opt-out using the global bStats config.");
+            metrics.addCustomChart(new Metrics.SimplePie("using_skript", new Callable<String>(){
+                @Override
+                public String call() throws Exception {
+                    if(skript != null){
+                        if(skript.isEnabled()){
+                            return skript.getDescription().getVersion();
+                        }
+                    }
+                    return "No Skript";
+                }
+            }));
+        }
     }
 
     public void registerCommands() {

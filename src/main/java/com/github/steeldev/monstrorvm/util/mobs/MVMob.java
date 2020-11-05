@@ -214,7 +214,7 @@ public class MVMob {
         return ChatColor.stripColor(getColoredName());
     }
 
-    public void spawnMob(Location location, @Nullable LivingEntity spawnedEnt) {
+    public Entity spawnMob(Location location, @Nullable LivingEntity spawnedEnt) {
         World world = location.getWorld();
         if (spawnedEnt != null) {
             if (!spawnedEnt.getType().equals(baseEntity))
@@ -366,5 +366,7 @@ public class MVMob {
                 mobName += " Baby";
             main.getLogger().info(colorize(String.format("&aCustom Mob &6%s &aspawned at &e%s&a!", mobName, location)));
         }
+
+        return spawnedEnt;
     }
 }
