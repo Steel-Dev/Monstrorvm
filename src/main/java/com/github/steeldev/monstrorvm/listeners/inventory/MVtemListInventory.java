@@ -20,8 +20,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
-import static com.github.steeldev.monstrorvm.util.Util.getUncoloredItemName;
+import static com.github.steeldev.monstrorvm.util.Util.*;
 
 public class MVtemListInventory implements Listener {
     public static String INVENTORY_NAME = "&cMonstrorvm &eItems";
@@ -45,6 +44,13 @@ public class MVtemListInventory implements Listener {
             ItemStack bnItem = customItem.getItem(false);
             ItemMeta bnItemMeta = bnItem.getItemMeta();
             List<String> lore = (bnItemMeta.getLore() == null) ? new ArrayList<>() : bnItemMeta.getLore();
+            if(customItem.category != null){
+                lore.add("");
+                lore.add(colorize("&7&oCategory:"));
+                lore.add(colorize("<#2883d2>&o" + customItem.category));
+            }
+            lore.add(colorize("&7&oAdded By:"));
+            lore.add(colorize("<#2883d2>&o" + ((customItem.registeredBy != null) ? customItem.registeredBy.getName() : "<#2883d2>&o"+main.getName())));
             lore.add("");
             lore.add(colorize("&7&oClick to give item."));
             bnItemMeta.setLore(lore);
@@ -57,11 +63,6 @@ public class MVtemListInventory implements Listener {
             bnItem = bnItemNBT.getItem();
             listedItems.add(bnItem);
         }
-
-        // For testing
-        /*for (int i = 0; i < 100; i++) {
-            listedItems.add(new ItemStack(Material.DIAMOND));
-        }*/
 
         listedItems.sort((o1, o2) -> getUncoloredItemName(o1).compareToIgnoreCase(getUncoloredItemName(o2)));
 
@@ -155,11 +156,11 @@ public class MVtemListInventory implements Listener {
                     if (p.getInventory().firstEmpty() != -1) {
                         p.getInventory().addItem(itemToGive);
                         p.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_GIVEN_MSG
-                                .replace("ITEMNAME", bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
+                                .replace("ITEMNAME", (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
                                 .replace("ITEMAMOUNT", String.valueOf(1)))));
                     } else {
                         p.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_PLAYER_INVENTORY_FULL_MSG
-                                .replace("ITEMNAME", bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
+                                .replace("ITEMNAME", (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
                                 .replace("ITEMAMOUNT", String.valueOf(1)))));
                     }
                 }

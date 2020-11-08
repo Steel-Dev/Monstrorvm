@@ -3,6 +3,7 @@ BaseItem: STICK
 DisplayName: '&eExample Item'
 Lore:
   - '&7Example!'
+Category: 'Example'
 Recipes:
   CRAFTING:
     SHAPED:

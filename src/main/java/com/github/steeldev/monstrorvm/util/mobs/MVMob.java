@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
 import static com.github.steeldev.monstrorvm.util.Util.*;
 
 public class MVMob {
+    public Plugin registeredBy;
     public String key;
     public String entityName;
     public List<EntityType> entityToReplace;
@@ -221,6 +223,9 @@ public class MVMob {
                 spawnedEnt.remove();
         }
         spawnedEnt = (LivingEntity) world.spawnEntity(location, baseEntity);
+        spawnedEnt.getPersistentDataContainer().set(MobManager.customMobKey, PersistentDataType.STRING, key);
+
+        spawnedEnt.setPortalCooldown(Integer.MAX_VALUE);
         if (baseEntity.equals(EntityType.WOLF)) {
             if (spawnedEnt instanceof Wolf) {
                 if (angry) {
@@ -351,10 +356,6 @@ public class MVMob {
                 isBaby = false;
             }
         }
-
-        spawnedEnt.getPersistentDataContainer().set(MobManager.customMobKey, PersistentDataType.STRING, key);
-
-        spawnedEnt.setPortalCooldown(Integer.MAX_VALUE);
 
         MobManager.addMobToSpawned(spawnedEnt);
 

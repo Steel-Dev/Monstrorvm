@@ -24,4 +24,12 @@ public class ItemUseEffect {
         this.type = type;
         this.mobID = mobID;
     }
+    public ItemUseEffect(ItemUseEffectType type) {
+        this.type = type;
+    }
+    public ItemUseEffect(ItemUseEffectType type,
+                         boolean consumeItemOnUse) {
+        this.type = type;
+        this.consumeItemOnUse = consumeItemOnUse;
+    }
 }

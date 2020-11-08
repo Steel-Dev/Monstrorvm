@@ -16,4 +16,8 @@ public class ItemConsumeEffect {
         this.potionEffects = potionEffects;
         this.hungerValue = hungerValue;
     }
+
+    public ItemConsumeEffect(String effectDisplay) {
+        this.effectDisplay = effectDisplay;
+    }
 }

@@ -40,6 +40,8 @@ public class MobManager {
 
         if (mobMap.containsKey(mob.key)) return;
 
+        mob.registeredBy = source;
+
         mobMap.put(mob.key, mob);
 
         main.getServer().getPluginManager().registerEvents(new CustomMobBase(mob.key), main);

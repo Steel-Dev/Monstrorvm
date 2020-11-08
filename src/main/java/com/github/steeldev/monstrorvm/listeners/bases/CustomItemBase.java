@@ -55,7 +55,7 @@ public class CustomItemBase implements Listener {
                     if (chanceOf(entry.chance)) {
                         victim.addPotionEffect(entry.getPotionEffect(), false);
                         if (Config.DEBUG)
-                            main.getLogger().info(String.format("&aCustom item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, victim.getName(), entry.effect));
+                            main.getLogger().info(String.format("&aCustom item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, victim.getName(), entry.getPotionEffect().toString()));
                     }
                 }
             }
@@ -95,7 +95,7 @@ public class CustomItemBase implements Listener {
                 if (chanceOf(effect.chance)) {
                     player.addPotionEffect(effect.getPotionEffect(), false);
                     if (Config.DEBUG)
-                        main.getLogger().info(String.format("&aCustom Item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, event.getPlayer().getName(), item.consumeEffect.effectDisplay));
+                        main.getLogger().info(String.format("&aCustom Item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, event.getPlayer().getName(), effect.getPotionEffect().toString()));
                 }
             }
         }
@@ -129,7 +129,7 @@ public class CustomItemBase implements Listener {
                 if (chanceOf(effect.chance)) {
                     victim.addPotionEffect(effect.getPotionEffect(), false);
                     if (Config.DEBUG)
-                        main.getLogger().info(String.format("&aCustom Item &6%s &aheld by &e%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, player.getName(), victim.getName(), effect));
+                        main.getLogger().info(String.format("&aCustom Item &6%s &aheld by &e%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, player.getName(), victim.getName(), effect.getPotionEffect().toString()));
                 }
             }
         }

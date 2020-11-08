@@ -33,7 +33,6 @@ public class CustomMobBase implements Listener {
     public void customMobSpawn(EntitySpawnEvent event) {
         World world = event.getLocation().getWorld();
         if (mob == null) return;
-        if (world == null) return;
         if (mob.validSpawnWorlds == null || !mob.validSpawnWorlds.contains(world.getEnvironment())) return;
         if (event.getEntity().getCustomName() != null) return;
         if (event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))

@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.Colorable;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,10 @@ import static com.github.steeldev.monstrorvm.util.Util.colorize;
 import static com.github.steeldev.monstrorvm.util.Util.rand;
 
 public class MVItem {
+    public Plugin registeredBy;
     public String key;
     public Material baseItem;
+    public String category;
     public String displayName;
     public List<String> lore;
     public int customModelData;
@@ -38,7 +41,6 @@ public class MVItem {
     public List<ItemNBTCompound> nbtCompoundList;
     public Color color;
     public SkullInfo skullInfo;
-
     public List<ItemRecipe> recipes;
 
     Monstrorvm main = Monstrorvm.getInstance();
@@ -47,6 +49,11 @@ public class MVItem {
                   Material baseItem) {
         this.key = key;
         this.baseItem = baseItem;
+    }
+
+    public MVItem withCategory(String category){
+        this.category = category;
+        return this;
     }
 
     public MVItem withDisplayName(String displayName) {

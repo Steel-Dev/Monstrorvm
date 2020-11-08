@@ -52,15 +52,7 @@ public class ItemManager {
 
         if (itemMap.containsKey(item.key)) return;
 
-        if (source != null) {
-            item.withLore("");
-            item.withLore("&7&oAdded By:");
-            item.withLore("<#2883d2>&o" + source.getName());
-        } else {
-            item.withLore("");
-            item.withLore("&7&oAdded By:");
-            item.withLore("<#2883d2>&oMonstrorvm");
-        }
+        item.registeredBy = source;
 
         itemMap.put(item.key, item);
 
@@ -219,6 +211,10 @@ public class ItemManager {
                 }
 
                 MVItem item = new MVItem(itemKey, baseItem);
+
+                if(itemYaml.contains("Category")){
+                    item.withCategory(itemYaml.getString("Category"));
+                }
 
                 if (itemYaml.contains("DisplayName")) {
                     if (itemYaml.getString("DisplayName").equals("")) {
