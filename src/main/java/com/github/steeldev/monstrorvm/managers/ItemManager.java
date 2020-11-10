@@ -69,7 +69,7 @@ public class ItemManager {
             for (ItemRecipe recipe : item.recipes) {
                 if (recipe instanceof ItemCraftingRecipe) {
                     ItemCraftingRecipe craftRec = (ItemCraftingRecipe) recipe;
-                    RecipeManager.addCraftingRecipe(item.key + "_" + craftRec.craftType.name(),
+                    RecipeManager.addCraftingRecipe(craftRec.key,
                             craftRec.craftType,
                             new RecipeChoice.ExactChoice(item.getItem(false)),
                             craftRec.resultAmount,
@@ -100,7 +100,7 @@ public class ItemManager {
 
                     inputChoice = new RecipeChoice.ExactChoice(item.getItem(false));
 
-                    RecipeManager.addSmeltingRecipe(item.key + "_" + smeltRec.smeltType.name(),
+                    RecipeManager.addSmeltingRecipe(smeltRec.key,
                             smeltRec.smeltType,
                             resultChoice,
                             smeltRec.resultAmount,
@@ -143,7 +143,7 @@ public class ItemManager {
                     }
                     additionChoice = (additionStack == null) ? new RecipeChoice.MaterialChoice(additionMat) : new RecipeChoice.ExactChoice(additionStack);
 
-                    RecipeManager.addSmithingRecipe(item.key + "_SMITHING",
+                    RecipeManager.addSmithingRecipe(smithingRec.key,
                             result,
                             baseChoice,
                             additionChoice);
@@ -471,6 +471,10 @@ public class ItemManager {
                                 for (String key : recipeSec.getKeys(false)) {
                                     if (key.contains("SHAPED")) {
                                         ConfigurationSection shapedSec = recipeSec.getConfigurationSection("SHAPED");
+                                        if(!shapedSec.contains("Key")){
+                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            invalid = true;
+                                        }
                                         if (!shapedSec.contains("Pattern")) {
                                             main.getLogger().info(colorize("&c[ERROR] You specified the RecipeType as SHAPED, but you didn't provide a pattern! Error occured in -  " + itemFile.getName()));
                                             invalid = true;
@@ -532,10 +536,14 @@ public class ItemManager {
                                         int amount = shapedSec.getInt("Amount");
                                         if (amount == 0) amount = 1;
 
-                                        item.withRecipe(new ItemCraftingRecipe(CraftType.SHAPED, pattern, finalIngredients, amount));
+                                        item.withRecipe(new ItemCraftingRecipe(CraftType.SHAPED, pattern, finalIngredients, amount, shapedSec.getString("Key")));
 
                                     } else if (key.contains("SHAPELESS")) {
                                         ConfigurationSection shapelessSec = recipeSec.getConfigurationSection("SHAPELESS");
+                                        if(!shapelessSec.contains("Key")){
+                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            invalid = true;
+                                        }
                                         if (!shapelessSec.contains("Ingredients")) {
                                             main.getLogger().info(colorize("&c[ERROR] You specified the RecipeType as SHAPELESS, but you didn't provide any ingredients! Error occured in -  " + itemFile.getName()));
                                             invalid = true;
@@ -561,7 +569,7 @@ public class ItemManager {
                                         int amount = shapelessSec.getInt("Amount");
                                         if (amount == 0) amount = 1;
 
-                                        item.withRecipe(new ItemCraftingRecipe(CraftType.SHAPELESS, finalIngredients, amount));
+                                        item.withRecipe(new ItemCraftingRecipe(CraftType.SHAPELESS, finalIngredients, amount, shapelessSec.getString("Key")));
                                     } else {
                                         main.getLogger().info(colorize("&c[ERROR] The specified Recipe Type " + entry + " in the Recipes list is invalid! Error occured in -  " + itemFile.getName()));
                                         invalid = true;
@@ -576,28 +584,40 @@ public class ItemManager {
                                 for (String key : recipeSec.getKeys(false)) {
                                     if (key.contains("FURNACE")) {
                                         ConfigurationSection furnaceSec = recipeSec.getConfigurationSection("FURNACE");
+                                        if(!furnaceSec.contains("Key")){
+                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            invalid = true;
+                                        }
                                         String result = furnaceSec.getString("Result");
                                         int time = furnaceSec.getInt("Time");
                                         int exp = furnaceSec.getInt("EXP");
                                         int amount = furnaceSec.getInt("Amount");
 
-                                        item.withRecipe(new ItemSmeltingRecipe(SmeltType.FURNACE, result, time, exp, amount));
+                                        item.withRecipe(new ItemSmeltingRecipe(SmeltType.FURNACE, result, time, exp, amount, furnaceSec.getString("Key")));
                                     } else if (key.contains("SMOKER")) {
                                         ConfigurationSection smokerSec = recipeSec.getConfigurationSection("SMOKER");
+                                        if(!smokerSec.contains("Key")){
+                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            invalid = true;
+                                        }
                                         String result = smokerSec.getString("Result");
                                         int time = smokerSec.getInt("Time");
                                         int exp = smokerSec.getInt("EXP");
                                         int amount = smokerSec.getInt("Amount");
 
-                                        item.withRecipe(new ItemSmeltingRecipe(SmeltType.SMOKER, result, time, exp, amount));
+                                        item.withRecipe(new ItemSmeltingRecipe(SmeltType.SMOKER, result, time, exp, amount, smokerSec.getString("Key")));
                                     } else if (key.contains("BLASTING")) {
                                         ConfigurationSection blastingSec = recipeSec.getConfigurationSection("BLASTING");
+                                        if(!blastingSec.contains("Key")){
+                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            invalid = true;
+                                        }
                                         String result = blastingSec.getString("Result");
                                         int time = blastingSec.getInt("Time");
                                         int exp = blastingSec.getInt("EXP");
                                         int amount = blastingSec.getInt("Amount");
 
-                                        item.withRecipe(new ItemSmeltingRecipe(SmeltType.BLASTING, result, time, exp, amount));
+                                        item.withRecipe(new ItemSmeltingRecipe(SmeltType.BLASTING, result, time, exp, amount, blastingSec.getString("Key")));
                                     } else {
                                         main.getLogger().info(colorize("&c[ERROR] The specified Recipe Type " + entry + " in the Recipes list is invalid! Error occured in -  " + itemFile.getName()));
                                         invalid = true;
@@ -605,10 +625,14 @@ public class ItemManager {
                                 }
                                 break;
                             case SMITHING:
+                                if(!recipeSec.contains("Key")){
+                                    main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                    invalid = true;
+                                }
                                 String itemNeeded = recipeSec.getString("ItemNeeded");
                                 String baseMat = recipeSec.getString("BaseMat");
 
-                                item.withRecipe(new ItemSmithingRecipe(itemNeeded, baseMat));
+                                item.withRecipe(new ItemSmithingRecipe(itemNeeded, baseMat,recipeSec.getString("Key")));
                                 break;
                             default:
                                 throw new IllegalStateException("Unexpected value: " + type);

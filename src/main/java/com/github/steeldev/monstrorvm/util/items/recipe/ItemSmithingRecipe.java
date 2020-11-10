@@ -7,8 +7,9 @@ public class ItemSmithingRecipe extends ItemRecipe {
     public String smithingBaseMat;
 
     public ItemSmithingRecipe(String smithingItemNeeded,
-                              String smithingBaseMat) {
-        super(ItemRecipeType.SMITHING, 1);
+                              String smithingBaseMat,
+                              String key) {
+        super(ItemRecipeType.SMITHING, 1, key);
         this.smithingItemNeeded = smithingItemNeeded;
         this.smithingBaseMat = smithingBaseMat;
     }

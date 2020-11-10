@@ -13,8 +13,9 @@ public class ItemSmeltingRecipe extends ItemRecipe {
                               String smeltingResult,
                               int smeltTime,
                               int smeltEXP,
-                              int resultAmount) {
-        super(ItemRecipeType.SMELTING, resultAmount);
+                              int resultAmount,
+                              String key) {
+        super(ItemRecipeType.SMELTING, resultAmount, key);
         this.smeltType = smeltType;
         this.smeltingResult = smeltingResult;
         this.smeltTime = smeltTime;

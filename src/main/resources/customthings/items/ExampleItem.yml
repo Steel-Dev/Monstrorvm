@@ -7,6 +7,7 @@ Category: 'Example'
 Recipes:
   CRAFTING:
     SHAPED:
+      Key: 'example_item_shaped'
       Pattern:
         - ' I '
         - 'I I'
@@ -16,26 +17,31 @@ Recipes:
         S: STICK
       Amount: 1
     SHAPELESS:
+      Key: 'example_item_shapeless'
       Ingredients:
         I: GOLD_INGOT
         S: STICK
       Amount: 1
   SMELTING:
     FURNACE:
+      Key: 'example_item_furnace'
       Result: 'monstrorvm:example_food'
       Time: 100
       EXP: 100
       Amount: 1
     SMOKER:
+      Key: 'example_item_smoker'
       Result: 'monstrorvm:example_food'
       Time: 50
       EXP: 10
       Amount: 1
     BLASTING:
+      Key: 'example_item_blasting'
       Result: 'monstrorvm:example_food'
       Time: 50
       EXP: 10
       Amount: 1
   SMITHING:
+    Key: 'example_item_smithing'
     ItemNeeded: IRON_INGOT
     BaseMat: WOODEN_SWORD
