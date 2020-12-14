@@ -1,6 +1,8 @@
 package com.github.steeldev.monstrorvm.util.items;
 
 
+import java.util.List;
+
 public class ItemNBTCompound {
     public String compoundKey;
     public ItemNBTType compoundType;
@@ -45,6 +47,13 @@ public class ItemNBTCompound {
 
     public ItemNBTCompound(String compoundKey,
                            String compoundValue) {
+        this.compoundKey = compoundKey;
+        this.compoundValue = compoundValue;
+        this.compoundType = ItemNBTType.STRING;
+    }
+
+    public ItemNBTCompound(String compoundKey,
+                           List<String> compoundValue) {
         this.compoundKey = compoundKey;
         this.compoundValue = compoundValue;
         this.compoundType = ItemNBTType.STRING;

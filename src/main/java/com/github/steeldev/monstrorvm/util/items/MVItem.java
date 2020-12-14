@@ -3,7 +3,9 @@ package com.github.steeldev.monstrorvm.util.items;
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemRecipe;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
+import de.tr7zw.changeme.nbtapi.NBTCompound;
 import de.tr7zw.changeme.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.NBTStringList;
 import dev.dbassett.skullcreator.SkullCreator;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -20,6 +22,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.github.steeldev.monstrorvm.util.Util.colorize;

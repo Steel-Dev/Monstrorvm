@@ -67,7 +67,9 @@ public class Monstrorvm extends JavaPlugin {
 
         enableMetrics();
 
-        if (loadSkript() != null) {
+        //WHEN RE ENABLING THIS/UNCOMMENTING IS, BE SURE TO CHANGE THE VERSION OF THE PLUGIN
+        // TO 1.0.2!
+        /*if (loadSkript() != null) {
             skript = loadSkript();
             if (skript.isEnabled()) {
                 getLogger().info("&aFound &eSkript " + skript.getDescription().getVersion() + "&a! Skript integration enabled!");
@@ -83,7 +85,7 @@ public class Monstrorvm extends JavaPlugin {
             } else
                 getLogger().info("&cFound &eSkript " + skript.getDescription().getVersion() + ", &cbut it's disabled! Skript integration disabled!");
         } else
-            getLogger().info("&cCould not find &eSkript &con the server! Skript integration disabled!");
+            getLogger().info("&cCould not find &eSkript &con the server! Skript integration disabled!");*/
 
         getLogger().info(String.format("&aSuccessfully enabled &2%s &ain &e%s Seconds&a.", getDescription().getVersion(), (float) (System.currentTimeMillis() - start) / 1000));
 
