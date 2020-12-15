@@ -80,15 +80,6 @@ public class Util {
         Bukkit.getConsoleSender().sendMessage(colorize(PREFIX + log));
     }
 
-    // This is your fault Skript. y u no have method to get Bukkits EntityType from your EntityType >:C
-    public static EntityType convertEntityTypeFromSkriptToBukkit(ch.njol.skript.entity.EntityType entity){
-        for(EntityType type : EntityType.values()){
-            if(type.getEntityClass() == entity.data.getType()) return type;
-        }
-        return null;
-    }
-
-
     public static boolean isMVMob(Entity mob) {
         return mob.getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING);
     }
