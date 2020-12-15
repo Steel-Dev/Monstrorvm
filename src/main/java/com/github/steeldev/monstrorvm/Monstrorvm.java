@@ -1,7 +1,5 @@
 package com.github.steeldev.monstrorvm;
 
-import ch.njol.skript.Skript;
-import ch.njol.skript.SkriptAddon;
 import com.github.steeldev.monstrorvm.commands.admin.*;
 import com.github.steeldev.monstrorvm.listeners.inventory.MVtemListInventory;
 import com.github.steeldev.monstrorvm.listeners.world.MVWorldListener;
@@ -34,7 +32,6 @@ public class Monstrorvm extends JavaPlugin {
 
     public Logger logger;
 
-    SkriptAddon monstrorvmAddon;
     Plugin skript;
 
     public static Monstrorvm getInstance() {

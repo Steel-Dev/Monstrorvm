@@ -196,18 +196,18 @@ public class MVItem {
                 }
             }
 
+            if(flags != null && flags.size() > 0){
+                for(ItemFlag flag : flags){
+                    customItemMeta.addItemFlags(flag);
+                }
+            }
+
             customItem.setItemMeta(customItemMeta);
         }
 
         if (enchantInfo != null && enchantInfo.size() > 0) {
             for (ItemEnchantInfo enchantInfo : enchantInfo) {
                 customItem.addUnsafeEnchantment(enchantInfo.enchant, enchantInfo.level);
-            }
-        }
-
-        if(flags != null && flags.size() > 0){
-            for(ItemFlag flag : flags){
-                customItemMeta.addItemFlags(flag);
             }
         }
 
