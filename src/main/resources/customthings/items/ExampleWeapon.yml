@@ -1,6 +1,8 @@
 Key: 'example_weapon'
 BaseItem: WOODEN_SWORD
 DisplayName: '&eExample Weapon'
+Flags:
+  - HIDE_ATTRIBUTES
 AttributeInfo:
   GENERIC_ATTACK_DAMAGE:
     Value: 10

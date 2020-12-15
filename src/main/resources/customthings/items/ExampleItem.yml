@@ -45,3 +45,4 @@ Recipes:
     Key: 'example_item_smithing'
     ItemNeeded: IRON_INGOT
     BaseMat: WOODEN_SWORD
+    

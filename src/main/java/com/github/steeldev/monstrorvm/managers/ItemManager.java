@@ -24,6 +24,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -461,6 +462,20 @@ public class ItemManager {
                 if(itemYaml.contains("Flags")){
                     for (String flag: itemYaml.getStringList("Flags")) {
                         item.withFlag(ItemFlag.valueOf(flag));
+                    }
+                }
+
+                if(itemYaml.contains("BookInfo")){
+                    String author = itemYaml.getString("BookInfo.Author");
+                    String title = itemYaml.getString("BookInfo.Title");
+                    BookMeta.Generation generation = BookMeta.Generation.valueOf(itemYaml.getString("BookInfo.Generation").toUpperCase());
+                    List<String> pages = itemYaml.getStringList("BookInfo.Pages");
+
+                    item.withAuthor(author);
+                    item.withTitle(title);
+                    item.withGeneration(generation);
+                    for(String page : pages){
+                        item.withPage(page);
                     }
                 }
 

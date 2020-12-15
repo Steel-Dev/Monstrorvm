@@ -14,12 +14,10 @@ import org.bukkit.Material;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.material.Colorable;
 import org.bukkit.plugin.Plugin;
+import org.omg.CORBA.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +45,11 @@ public class MVItem {
     public SkullInfo skullInfo;
     public List<ItemRecipe> recipes;
     public List<ItemFlag> flags;
+
+    public String bookAuthor;
+    public BookMeta.Generation bookGeneration;
+    public List<String> bookPages;
+    public String bookTitle;
 
     Monstrorvm main = Monstrorvm.getInstance();
 
@@ -143,6 +146,26 @@ public class MVItem {
         return this;
     }
 
+    public MVItem withAuthor(String author){
+        this.bookAuthor = author;
+        return this;
+    }
+    public MVItem withGeneration(BookMeta.Generation generation){
+        this.bookGeneration = generation;
+        return this;
+    }
+    public MVItem withTitle(String title){
+        this.bookTitle = title;
+        return this;
+    }
+    public MVItem withPage(String page){
+        if(this.bookPages == null) this.bookPages = new ArrayList<>();
+
+        this.bookPages.add(page);
+
+        return this;
+    }
+
     public ItemStack getItem(){
         return getItem(false);
     }
@@ -199,6 +222,15 @@ public class MVItem {
             if(flags != null && flags.size() > 0){
                 for(ItemFlag flag : flags){
                     customItemMeta.addItemFlags(flag);
+                }
+            }
+
+            if(customItemMeta instanceof BookMeta){
+                ((BookMeta)customItemMeta).setAuthor(colorize(bookAuthor));
+                ((BookMeta)customItemMeta).setGeneration(bookGeneration);
+                ((BookMeta)customItemMeta).setTitle(colorize(bookTitle));
+                for(String page : bookPages){
+                    ((BookMeta)customItemMeta).addPage(colorize(page.replace("\\n","\n")));
                 }
             }
 
