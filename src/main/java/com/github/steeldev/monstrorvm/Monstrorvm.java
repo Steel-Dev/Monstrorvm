@@ -67,26 +67,6 @@ public class Monstrorvm extends JavaPlugin {
 
         enableMetrics();
 
-        //WHEN RE ENABLING THIS/UNCOMMENTING IS, BE SURE TO CHANGE THE VERSION OF THE PLUGIN
-        // TO 1.0.2!
-        /*if (loadSkript() != null) {
-            skript = loadSkript();
-            if (skript.isEnabled()) {
-                getLogger().info("&aFound &eSkript " + skript.getDescription().getVersion() + "&a! Skript integration enabled!");
-
-                monstrorvmAddon = Skript.registerAddon(this);
-
-                try {
-                    monstrorvmAddon.loadClasses("com.github.steeldev.monstrorvm.skript", "elements");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                getLogger().info("&aSuccessfully registered as a Skript addon.");
-            } else
-                getLogger().info("&cFound &eSkript " + skript.getDescription().getVersion() + ", &cbut it's disabled! Skript integration disabled!");
-        } else
-            getLogger().info("&cCould not find &eSkript &con the server! Skript integration disabled!");*/
-
         getLogger().info(String.format("&aSuccessfully enabled &2%s &ain &e%s Seconds&a.", getDescription().getVersion(), (float) (System.currentTimeMillis() - start) / 1000));
 
         checkForNewVersion();
@@ -96,10 +76,6 @@ public class Monstrorvm extends JavaPlugin {
     public void onDisable() {
         getLogger().info("&cSuccessfully disabled!");
         instance = null;
-    }
-
-    public Plugin loadSkript() {
-        return Bukkit.getServer().getPluginManager().getPlugin("Skript");
     }
 
     public void checkForNewVersion() {
@@ -139,20 +115,8 @@ public class Monstrorvm extends JavaPlugin {
     public void enableMetrics() {
         Metrics metrics = new Metrics(this, 9288);
 
-        if (metrics.isEnabled()) {
+        if (metrics.isEnabled())
             getLogger().info("&7Starting Metrics. Opt-out using the global bStats config.");
-            metrics.addCustomChart(new Metrics.SimplePie("using_skript", new Callable<String>(){
-                @Override
-                public String call() throws Exception {
-                    if(skript != null){
-                        if(skript.isEnabled()){
-                            return skript.getDescription().getVersion();
-                        }
-                    }
-                    return "No Skript";
-                }
-            }));
-        }
     }
 
     public void registerCommands() {
