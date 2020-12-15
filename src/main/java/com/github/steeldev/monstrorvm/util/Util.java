@@ -1,6 +1,7 @@
 package com.github.steeldev.monstrorvm.util;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -83,5 +84,19 @@ public class Util {
             if(type.getEntityClass() == entity.data.getType()) return type;
         }
         return null;
+    }
+
+    public static boolean isMVItem(ItemStack item) {
+        NBTItem itemNBT = new NBTItem(item);
+
+        return itemNBT.hasKey("MVItem");
+    }
+    public static boolean isMVItem(ItemStack item, String customItemKey){
+        NBTItem itemNBT = new NBTItem(item);
+
+        if(isMVItem(item))
+            return itemNBT.getString("MVItem").equals(customItemKey);
+
+        return false;
     }
 }
