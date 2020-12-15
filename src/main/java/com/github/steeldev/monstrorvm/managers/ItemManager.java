@@ -564,7 +564,7 @@ public class ItemManager {
                                     } else if (key.contains("SHAPELESS")) {
                                         ConfigurationSection shapelessSec = recipeSec.getConfigurationSection("SHAPELESS");
                                         if(!shapelessSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
                                             invalid = true;
                                         }
                                         if (!shapelessSec.contains("Ingredients")) {
@@ -608,7 +608,7 @@ public class ItemManager {
                                     if (key.contains("FURNACE")) {
                                         ConfigurationSection furnaceSec = recipeSec.getConfigurationSection("FURNACE");
                                         if(!furnaceSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
                                             invalid = true;
                                         }
                                         String result = furnaceSec.getString("Result");
@@ -632,7 +632,7 @@ public class ItemManager {
                                     } else if (key.contains("BLASTING")) {
                                         ConfigurationSection blastingSec = recipeSec.getConfigurationSection("BLASTING");
                                         if(!blastingSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                            main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
                                             invalid = true;
                                         }
                                         String result = blastingSec.getString("Result");
@@ -649,7 +649,7 @@ public class ItemManager {
                                 break;
                             case SMITHING:
                                 if(!recipeSec.contains("Key")){
-                                    main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                    main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
                                     invalid = true;
                                 }
                                 String itemNeeded = recipeSec.getString("ItemNeeded");
