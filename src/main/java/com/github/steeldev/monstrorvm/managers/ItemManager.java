@@ -22,6 +22,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.plugin.Plugin;
@@ -457,6 +458,12 @@ public class ItemManager {
                         item.withSkullOwnerByName(itemYaml.getString("SkullInfo.OwnerName"));
                     if (itemYaml.contains("SkullInfo.Base64"))
                         item.withSkullOwnerByBase64(itemYaml.getString("SkullInfo.Base64"));
+                }
+
+                if(itemYaml.contains("Flags")){
+                    for (String flag: itemYaml.getStringList("Flags")) {
+                        item.withFlag(ItemFlag.valueOf(flag));
+                    }
                 }
 
                 if (itemYaml.contains("Recipes")) {

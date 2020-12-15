@@ -3,6 +3,7 @@ package com.github.steeldev.monstrorvm.listeners.bases;
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
 import com.github.steeldev.monstrorvm.managers.MobManager;
+import com.github.steeldev.monstrorvm.util.Util;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.items.ItemUseEffectType;
 import com.github.steeldev.monstrorvm.util.items.MVItem;
@@ -43,9 +44,7 @@ public class CustomItemBase implements Listener {
             ItemStack attackItem = ((Player) event.getDamager()).getInventory().getItemInMainHand();
             if (attackItem.getType().equals(Material.AIR)) return;
             if (attackItem.getType() != item.baseItem) return;
-            NBTItem attackItemNBT = new NBTItem(attackItem);
-            if (!attackItemNBT.hasKey("MVItem")) return;
-            if (!attackItemNBT.getString("MVItem").equals(item.key)) return;
+            if (!Util.isMVItem(attackItem,item.key)) return;
 
             if (item.attackEffect == null || item.attackEffect.size() < 1) return;
 
@@ -73,9 +72,7 @@ public class CustomItemBase implements Listener {
         ItemStack useItem = event.getPlayer().getInventory().getItemInMainHand();
         if (useItem.getType().equals(Material.AIR)) return;
         if (useItem.getType() != item.baseItem) return;
-        NBTItem useItemNBT = new NBTItem(useItem);
-        if (!useItemNBT.hasKey("MVItem")) return;
-        if (!useItemNBT.getString("MVItem").equals(item.key)) return;
+        if (!Util.isMVItem(useItem,item.key)) return;
 
         if (item.useEffect == null) return;
 
@@ -113,9 +110,7 @@ public class CustomItemBase implements Listener {
         ItemStack useItem = event.getPlayer().getInventory().getItemInMainHand();
         if (useItem.getType().equals(Material.AIR)) return;
         if (useItem.getType() != item.baseItem) return;
-        NBTItem useItemNBT = new NBTItem(useItem);
-        if (!useItemNBT.hasKey("MVItem")) return;
-        if (!useItemNBT.getString("MVItem").equals(item.key)) return;
+        if (!Util.isMVItem(useItem,item.key)) return;
 
         if (item.useEffect == null) return;
 
@@ -147,9 +142,7 @@ public class CustomItemBase implements Listener {
         ItemStack consumedItem = event.getItem();
         if (consumedItem.getType().equals(Material.AIR)) return;
         if (consumedItem.getType() != item.baseItem) return;
-        NBTItem consumedItemNBT = new NBTItem(consumedItem);
-        if (!consumedItemNBT.hasKey("MVItem")) return;
-        if (!consumedItemNBT.getString("MVItem").equals(item.key)) return;
+        if (!Util.isMVItem(consumedItem,item.key)) return;
 
         if (item.consumeEffect == null) return;
 

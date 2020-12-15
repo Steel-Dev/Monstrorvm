@@ -230,6 +230,9 @@ public class MVItem {
                     case STRING:
                         customItemNBT.setString(compound.compoundKey, (String) compound.compoundValue);
                         break;
+                    case STRING_LIST:
+                        customItemNBT.setObject(compound.compoundKey,compound.compoundValue);
+                        break;
                     case INTEGER:
                         customItemNBT.setInteger(compound.compoundKey, (Integer) compound.compoundValue);
                         break;

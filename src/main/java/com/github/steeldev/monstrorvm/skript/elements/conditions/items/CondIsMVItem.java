@@ -6,6 +6,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.util.Kleenean;
 import com.github.steeldev.monstrorvm.managers.MobManager;
+import com.github.steeldev.monstrorvm.util.Util;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -25,10 +26,7 @@ public class CondIsMVItem extends Condition {
     @Override
     public boolean check(Event event) {
         ItemStack itemStack = item.getSingle(event);
-        NBTItem itemStackNBT = new NBTItem(itemStack);
-        if(itemStackNBT.hasKey("MVItem"))
-            return true;
-        return false;
+        return Util.isMVItem(itemStack);
     }
 
     @Override

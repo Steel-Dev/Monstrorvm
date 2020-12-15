@@ -1,6 +1,7 @@
 package com.github.steeldev.monstrorvm.util;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
+import com.github.steeldev.monstrorvm.managers.MobManager;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -8,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -84,6 +86,17 @@ public class Util {
             if(type.getEntityClass() == entity.data.getType()) return type;
         }
         return null;
+    }
+
+
+    public static boolean isMVMob(Entity mob) {
+        return mob.getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING);
+    }
+    public static boolean isMVMob(Entity mob, String customMobKey){
+        if(isMVMob(mob))
+            return mob.getPersistentDataContainer().get(MobManager.customMobKey, PersistentDataType.STRING).equals(customMobKey);
+
+        return false;
     }
 
     public static boolean isMVItem(ItemStack item) {

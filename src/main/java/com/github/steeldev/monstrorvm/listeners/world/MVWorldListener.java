@@ -1,6 +1,7 @@
 package com.github.steeldev.monstrorvm.listeners.world;
 
 import com.github.steeldev.monstrorvm.managers.MobManager;
+import com.github.steeldev.monstrorvm.util.Util;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -15,7 +16,7 @@ public class MVWorldListener implements Listener {
     public void chunkLoad(ChunkLoadEvent event) {
         for (Entity entity : event.getChunk().getEntities()) {
             if (entity instanceof LivingEntity) {
-                if (entity.getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
+                if (Util.isMVMob(entity))
                     MobManager.addMobToSpawned((LivingEntity) entity);
             }
         }
@@ -25,7 +26,7 @@ public class MVWorldListener implements Listener {
     public void chunkUnload(ChunkUnloadEvent event) {
         for (Entity entity : event.getChunk().getEntities()) {
             if (entity instanceof LivingEntity) {
-                if (entity.getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
+                if (Util.isMVMob(entity))
                     MobManager.removeMobFromSpawned((LivingEntity) entity);
             }
         }

@@ -14,26 +14,6 @@ public class ItemCraftingRecipe extends ItemRecipe {
     public Map<Character, Material> craftingIngredients;
     public Map<Character, RecipeChoice> craftingIngredientsChoice;
 
-    /*public ItemCraftingRecipe(CraftType craftType,
-                              List<String> craftingPattern,
-                              Map<Character, Material> craftingIngredients,
-                              int resultAmount,
-                              String key) {
-        super(ItemRecipeType.CRAFTING, resultAmount, key);
-        this.craftType = craftType;
-        this.craftingPattern = craftingPattern;
-        this.craftingIngredients = craftingIngredients;
-    }
-
-    public ItemCraftingRecipe(CraftType craftType,
-                              Map<Character, Material> craftingIngredients,
-                              int resultAmount,
-                              String key) {
-        super(ItemRecipeType.CRAFTING, resultAmount, key);
-        this.craftType = craftType;
-        this.craftingIngredients = craftingIngredients;
-    }*/
-
     public ItemCraftingRecipe(CraftType craftType,
                               List<String> craftingPattern,
                               Map<Character, RecipeChoice> craftingIngredientsChoice,

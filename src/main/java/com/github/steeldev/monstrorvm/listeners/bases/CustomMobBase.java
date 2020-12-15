@@ -2,6 +2,7 @@ package com.github.steeldev.monstrorvm.listeners.bases;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.MobManager;
+import com.github.steeldev.monstrorvm.util.Util;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
 import com.github.steeldev.monstrorvm.util.mobs.ItemChance;
@@ -35,8 +36,7 @@ public class CustomMobBase implements Listener {
         if (mob == null) return;
         if (mob.validSpawnWorlds == null || !mob.validSpawnWorlds.contains(world.getEnvironment())) return;
         if (event.getEntity().getCustomName() != null) return;
-        if (event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
-            return;
+        if (Util.isMVMob(event.getEntity())) return;
         if (mob.entityToReplace == null ||
                 mob.entityToReplace.size() < 1 ||
                 !mob.entityToReplace.contains(event.getEntityType())) return;
@@ -57,8 +57,7 @@ public class CustomMobBase implements Listener {
         if (mob == null) return;
         if (!event.getEntityType().equals(mob.baseEntity)) return;
         if (event.getEntity().getCustomName() == null) return;
-        if (!event.getEntity().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
-            return;
+        if (!Util.isMVMob(event.getEntity())) return;
         if (!ChatColor.stripColor(event.getEntity().getCustomName()).equals(mob.getUncoloredName())) return;
 
         if (mob.dropsToRemove != null && mob.dropsToRemove.size() > 0)
@@ -86,8 +85,7 @@ public class CustomMobBase implements Listener {
         if (mob == null) return;
         if (!event.getDamager().getType().equals(mob.baseEntity)) return;
         if (event.getDamager().getCustomName() == null) return;
-        if (!event.getDamager().getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING))
-            return;
+        if (!Util.isMVMob(event.getEntity())) return;
         if (!ChatColor.stripColor(event.getDamager().getCustomName()).equals(mob.getUncoloredName())) return;
 
         if (event.getEntity() instanceof LivingEntity) {
@@ -114,7 +112,7 @@ public class CustomMobBase implements Listener {
         if (target.isDead()) return;
         if (!entity.getType().equals(mob.baseEntity)) return;
         if (entity.getCustomName() == null) return;
-        if (!entity.getPersistentDataContainer().has(MobManager.customMobKey, PersistentDataType.STRING)) return;
+        if (!Util.isMVMob(event.getEntity())) return;
         if (!ChatColor.stripColor(entity.getCustomName()).equals(mob.getUncoloredName())) return;
         if (mob.targetEffect == null) return;
 
