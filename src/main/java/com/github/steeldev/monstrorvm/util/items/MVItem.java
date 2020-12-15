@@ -12,6 +12,7 @@ import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -45,6 +46,7 @@ public class MVItem {
     public Color color;
     public SkullInfo skullInfo;
     public List<ItemRecipe> recipes;
+    public List<ItemFlag> flags;
 
     Monstrorvm main = Monstrorvm.getInstance();
 
@@ -133,6 +135,18 @@ public class MVItem {
         return this;
     }
 
+    public MVItem withFlag(ItemFlag flag){
+        if(this.flags == null) this.flags = new ArrayList<>();
+
+        this.flags.add(flag);
+
+        return this;
+    }
+
+    public ItemStack getItem(){
+        return getItem(false);
+    }
+
     public ItemStack getItem(boolean damaged) {
         ItemStack customItem = new ItemStack(baseItem);
         if (skullInfo != null) {
@@ -188,6 +202,12 @@ public class MVItem {
         if (enchantInfo != null && enchantInfo.size() > 0) {
             for (ItemEnchantInfo enchantInfo : enchantInfo) {
                 customItem.addUnsafeEnchantment(enchantInfo.enchant, enchantInfo.level);
+            }
+        }
+
+        if(flags != null && flags.size() > 0){
+            for(ItemFlag flag : flags){
+                customItemMeta.addItemFlags(flag);
             }
         }
 
