@@ -12,7 +12,6 @@ import com.github.steeldev.monstrorvm.util.items.recipe.types.CraftType;
 import com.github.steeldev.monstrorvm.util.items.recipe.types.ItemRecipeType;
 import com.github.steeldev.monstrorvm.util.items.recipe.types.SmeltType;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
-import jdk.internal.jline.internal.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -50,7 +49,7 @@ public class ItemManager {
             "ExampleWeapon",
             "ExampleColoredItem"));
 
-    public static void registerNewItem(MVItem item, @Nullable Plugin source) {
+    public static void registerNewItem(MVItem item, Plugin source) {
         if (itemMap == null) itemMap = new HashMap<>();
 
         if (itemMap.containsKey(item.key)) return;

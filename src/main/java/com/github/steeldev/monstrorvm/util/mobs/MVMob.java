@@ -4,7 +4,6 @@ import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.MobManager;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
-import jdk.internal.jline.internal.Nullable;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -216,7 +215,7 @@ public class MVMob {
         return ChatColor.stripColor(getColoredName());
     }
 
-    public Entity spawnMob(Location location, @Nullable LivingEntity spawnedEnt) {
+    public Entity spawnMob(Location location, LivingEntity spawnedEnt) {
         World world = location.getWorld();
         if (spawnedEnt != null) {
             if (!spawnedEnt.getType().equals(baseEntity))
