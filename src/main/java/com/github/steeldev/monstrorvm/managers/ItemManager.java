@@ -75,12 +75,14 @@ public class ItemManager {
                     for (ItemRecipe recipe : item.recipes) {
                         if (recipe instanceof ItemCraftingRecipe) {
                             ItemCraftingRecipe craftRec = (ItemCraftingRecipe) recipe;
-                            RecipeManager.addCraftingRecipe(craftRec.key,
-                                    craftRec.craftType,
-                                    new RecipeChoice.ExactChoice(item.getItem(false)),
-                                    craftRec.resultAmount,
-                                    craftRec.craftingPattern,
-                                    craftRec.craftingIngredients);
+                            if(craftRec.craftingIngredients != null) {
+                                RecipeManager.addCraftingRecipe(craftRec.key,
+                                        craftRec.craftType,
+                                        new RecipeChoice.ExactChoice(item.getItem(false)),
+                                        craftRec.resultAmount,
+                                        craftRec.craftingPattern,
+                                        craftRec.craftingIngredientsChoice);
+                            }
                         }
                         if (recipe instanceof ItemSmeltingRecipe) {
                             ItemSmeltingRecipe smeltRec = (ItemSmeltingRecipe) recipe;

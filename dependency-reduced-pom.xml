@@ -28,7 +28,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.0</version>
         <configuration>
-          <compilerArgument>-XDignore.symbol.file</compilerArgument>
           <source>8</source>
           <target>8</target>
           <encoding>UTF-8</encoding>
@@ -146,8 +145,8 @@
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.target>1.6</maven.compiler.target>
-    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.source>1.8</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 </project>
