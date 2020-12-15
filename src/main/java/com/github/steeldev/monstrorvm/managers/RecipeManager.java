@@ -77,7 +77,7 @@ public class RecipeManager {
         addRecipe(recToAdd);
     }
 
-    public static void addCraftingRecipe(String key, CraftType type, Material result, int resultAmount, List<String> rows, Map<Character, Material> ingredients) {
+    /*public static void addCraftingRecipe(String key, CraftType type, Material result, int resultAmount, List<String> rows, Map<Character, Material> ingredients) {
         NamespacedKey craftingRecKey = new NamespacedKey(main, key);
         int am = resultAmount;
         if (am > 64) am = 64;
@@ -105,7 +105,7 @@ public class RecipeManager {
         }
 
         addRecipe(recToAdd);
-    }
+    }*/
 
     public static void addCraftingRecipe(String key, CraftType type, RecipeChoice result, int resultAmount, List<String> rows, Map<Character, RecipeChoice> ingredients) {
         NamespacedKey craftingRecKey = new NamespacedKey(main, key);

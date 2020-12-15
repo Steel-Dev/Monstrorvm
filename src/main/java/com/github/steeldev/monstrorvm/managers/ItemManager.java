@@ -68,94 +68,91 @@ public class ItemManager {
                 main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered.", item.key));
         }
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(main, new Runnable() {
-            @Override
-            public void run() {
-                if (item.recipes != null) {
-                    for (ItemRecipe recipe : item.recipes) {
-                        if (recipe instanceof ItemCraftingRecipe) {
-                            ItemCraftingRecipe craftRec = (ItemCraftingRecipe) recipe;
-                            if(craftRec.craftingIngredients != null) {
-                                RecipeManager.addCraftingRecipe(craftRec.key,
-                                        craftRec.craftType,
-                                        new RecipeChoice.ExactChoice(item.getItem(false)),
-                                        craftRec.resultAmount,
-                                        craftRec.craftingPattern,
-                                        craftRec.craftingIngredientsChoice);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> {
+            if (item.recipes != null) {
+                for (ItemRecipe recipe : item.recipes) {
+                    if (recipe instanceof ItemCraftingRecipe) {
+                        ItemCraftingRecipe craftRec = (ItemCraftingRecipe) recipe;
+                        if(craftRec.craftingIngredientsChoice != null) {
+                            RecipeManager.addCraftingRecipe(craftRec.key,
+                                    craftRec.craftType,
+                                    new RecipeChoice.ExactChoice(item.getItem()),
+                                    craftRec.resultAmount,
+                                    craftRec.craftingPattern,
+                                    craftRec.craftingIngredientsChoice);
+                        }
+                    }
+                    if (recipe instanceof ItemSmeltingRecipe) {
+                        ItemSmeltingRecipe smeltRec = (ItemSmeltingRecipe) recipe;
+
+                        Material result = null;
+
+                        ItemStack resultItem = null;
+
+
+                        RecipeChoice inputChoice;
+                        RecipeChoice resultChoice;
+
+
+                        if (smeltRec.smeltingResult.startsWith("monstrorvm:")) {
+                            resultItem = ItemManager.getItem(smeltRec.smeltingResult.replace("monstrorvm:", "")).getItem(false);
+                        } else {
+                            result = Material.valueOf(smeltRec.smeltingResult.replace("monstrorvm:", ""));
+                            if (result == null) {
+                                main.getLogger().info("&c[ERROR] Result material for SMELTING recipe is invalid! - Error occured in: " + item.toString());
                             }
                         }
-                        if (recipe instanceof ItemSmeltingRecipe) {
-                            ItemSmeltingRecipe smeltRec = (ItemSmeltingRecipe) recipe;
+                        resultChoice = (resultItem == null) ? new RecipeChoice.MaterialChoice(result) : new RecipeChoice.ExactChoice(resultItem);
 
-                            Material result = null;
+                        inputChoice = new RecipeChoice.ExactChoice(item.getItem(false));
 
-                            ItemStack resultItem = null;
+                        RecipeManager.addSmeltingRecipe(smeltRec.key,
+                                smeltRec.smeltType,
+                                resultChoice,
+                                smeltRec.resultAmount,
+                                inputChoice,
+                                smeltRec.smeltEXP,
+                                smeltRec.smeltTime);
+                    }
+                    if (recipe instanceof ItemSmithingRecipe) {
+                        ItemSmithingRecipe smithingRec = (ItemSmithingRecipe) recipe;
 
+                        ItemStack result = item.getItem(false);
 
-                            RecipeChoice inputChoice;
-                            RecipeChoice resultChoice;
+                        ItemStack baseStack = null;
+                        Material baseMat = null;
+                        RecipeChoice baseChoice;
 
+                        ItemStack additionStack = null;
+                        Material additionMat = null;
+                        RecipeChoice additionChoice;
 
-                            if (smeltRec.smeltingResult.startsWith("monstrorvm:")) {
-                                resultItem = ItemManager.getItem(smeltRec.smeltingResult.replace("monstrorvm:", "")).getItem(false);
-                            } else {
-                                result = Material.valueOf(smeltRec.smeltingResult.replace("monstrorvm:", ""));
-                                if (result == null) {
-                                    main.getLogger().info("&c[ERROR] Result material for SMELTING recipe is invalid! - Error occured in: " + item.toString());
-                                }
+                        if (smithingRec.smithingBaseMat.startsWith("monstrorvm:")) {
+                            baseStack = ItemManager.getItem(smithingRec.smithingBaseMat.replace("monstrorvm:", "")).getItem(false);
+                        } else {
+                            Material resMat = Material.valueOf(smithingRec.smithingBaseMat);
+                            if (resMat == null) {
+                                main.getLogger().info("&c[ERROR] Base material for SMITHING recipe is invalid! - Error occured in: " + item.toString());
                             }
-                            resultChoice = (resultItem == null) ? new RecipeChoice.MaterialChoice(result) : new RecipeChoice.ExactChoice(resultItem);
-
-                            inputChoice = new RecipeChoice.ExactChoice(item.getItem(false));
-
-                            RecipeManager.addSmeltingRecipe(smeltRec.key,
-                                    smeltRec.smeltType,
-                                    resultChoice,
-                                    smeltRec.resultAmount,
-                                    inputChoice,
-                                    smeltRec.smeltEXP,
-                                    smeltRec.smeltTime);
+                            baseMat = resMat;
                         }
-                        if (recipe instanceof ItemSmithingRecipe) {
-                            ItemSmithingRecipe smithingRec = (ItemSmithingRecipe) recipe;
+                        baseChoice = (baseStack == null) ? new RecipeChoice.MaterialChoice(baseMat) : new RecipeChoice.ExactChoice(baseStack);
 
-                            ItemStack result = item.getItem(false);
-
-                            ItemStack baseStack = null;
-                            Material baseMat = null;
-                            RecipeChoice baseChoice;
-
-                            ItemStack additionStack = null;
-                            Material additionMat = null;
-                            RecipeChoice additionChoice;
-
-                            if (smithingRec.smithingBaseMat.startsWith("monstrorvm:")) {
-                                baseStack = ItemManager.getItem(smithingRec.smithingBaseMat.replace("monstrorvm:", "")).getItem(false);
-                            } else {
-                                Material resMat = Material.valueOf(smithingRec.smithingBaseMat);
-                                if (resMat == null) {
-                                    main.getLogger().info("&c[ERROR] Base material for SMITHING recipe is invalid! - Error occured in: " + item.toString());
-                                }
-                                baseMat = resMat;
+                        if (smithingRec.smithingItemNeeded.startsWith("monstrorvm:")) {
+                            additionStack = ItemManager.getItem(smithingRec.smithingItemNeeded.replace("monstrorvm:", "")).getItem(false);
+                        } else {
+                            Material resMat = Material.valueOf(smithingRec.smithingItemNeeded);
+                            if (resMat == null) {
+                                main.getLogger().info("&c[ERROR] Addition material for SMITHING recipe is invalid! - Error occured in: " + item.toString());
                             }
-                            baseChoice = (baseStack == null) ? new RecipeChoice.MaterialChoice(baseMat) : new RecipeChoice.ExactChoice(baseStack);
-
-                            if (smithingRec.smithingItemNeeded.startsWith("monstrorvm:")) {
-                                additionStack = ItemManager.getItem(smithingRec.smithingItemNeeded.replace("monstrorvm:", "")).getItem(false);
-                            } else {
-                                Material resMat = Material.valueOf(smithingRec.smithingItemNeeded);
-                                if (resMat == null) {
-                                    main.getLogger().info("&c[ERROR] Addition material for SMITHING recipe is invalid! - Error occured in: " + item.toString());
-                                }
-                                additionMat = resMat;
-                            }
-                            additionChoice = (additionStack == null) ? new RecipeChoice.MaterialChoice(additionMat) : new RecipeChoice.ExactChoice(additionStack);
-
-                            RecipeManager.addSmithingRecipe(smithingRec.key,
-                                    result,
-                                    baseChoice,
-                                    additionChoice);
+                            additionMat = resMat;
                         }
+                        additionChoice = (additionStack == null) ? new RecipeChoice.MaterialChoice(additionMat) : new RecipeChoice.ExactChoice(additionStack);
+
+                        RecipeManager.addSmithingRecipe(smithingRec.key,
+                                result,
+                                baseChoice,
+                                additionChoice);
                     }
                 }
             }
@@ -540,13 +537,23 @@ public class ItemManager {
                                         Map<Character, RecipeChoice> finalIngredients = new HashMap<>();
 
                                         for (String mat : ingredients.getKeys(false)) {
-                                            Material ingMat = Material.valueOf(ingredients.getString(mat));
-                                            Character recChar = mat.toCharArray()[0];
-                                            if (ingMat == null) {
-                                                main.getLogger().info(colorize("&c[ERROR] The specified Material " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName()));
-                                                invalid = true;
+                                            if(!mat.startsWith("monstrorvm:")) {
+                                                Material ingMat = Material.valueOf(ingredients.getString(mat));
+                                                Character recChar = mat.toCharArray()[0];
+                                                if (ingMat == null) {
+                                                    main.getLogger().info(colorize("&c[ERROR] The specified Material " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName()));
+                                                    invalid = true;
+                                                }
+                                                finalIngredients.put(recChar, new RecipeChoice.MaterialChoice(ingMat));
+                                            }else{
+                                                ItemStack ingItem = getItem(mat.replace("monstrorvm:","")).getItem();
+                                                Character recChar = mat.toCharArray()[0];
+                                                if (ingItem == null) {
+                                                    main.getLogger().info(colorize("&c[ERROR] The specified Item " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName()));
+                                                    invalid = true;
+                                                }
+                                                finalIngredients.put(recChar, new RecipeChoice.ExactChoice(ingItem));
                                             }
-                                            finalIngredients.put(recChar, new RecipeChoice.MaterialChoice(ingMat));
                                         }
 
                                         int amount = shapedSec.getInt("Amount");
