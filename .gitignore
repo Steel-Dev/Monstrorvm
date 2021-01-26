@@ -1,4 +1,3 @@
-target
 target/*
-Screenshots
 Screenshots/*
+dependency-reduced-pom.xml
