@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -41,7 +42,7 @@ public class MVtemListInventory implements Listener {
 
         for (String item : ItemManager.getValidItemList()) {
             MVItem customItem = ItemManager.getItem(item);
-            ItemStack bnItem = customItem.getItem(false);
+            ItemStack bnItem = customItem.getItem();
             ItemMeta bnItemMeta = bnItem.getItemMeta();
             List<String> lore = (bnItemMeta.getLore() == null) ? new ArrayList<>() : bnItemMeta.getLore();
             if(customItem.category != null){
@@ -52,7 +53,9 @@ public class MVtemListInventory implements Listener {
             lore.add(colorize("&7&oAdded By:"));
             lore.add(colorize("<#2883d2>&o" + ((customItem.registeredBy != null) ? customItem.registeredBy.getName() : "<#2883d2>&o"+main.getName())));
             lore.add("");
-            lore.add(colorize("&7&oClick to give item."));
+            lore.add(colorize("&7&oLeft-Click to give x1 of item."));
+            if(customItem.getItem().getMaxStackSize() > 1)
+                lore.add(colorize("&7&oRight-Click to give x" + customItem.getItem().getMaxStackSize() +" of item."));
             bnItemMeta.setLore(lore);
             bnItem.setItemMeta(bnItemMeta);
             NBTItem bnItemNBT = new NBTItem(bnItem);
@@ -152,16 +155,21 @@ public class MVtemListInventory implements Listener {
                 if (clickedItemNBT.getString("InventoryAction").equals("GIVE_ITEM")) {
                     MVItem bnItem = ItemManager.getItem(clickedItemNBT.getString("ItemToGive"));
                     ItemStack itemToGive = bnItem.getItem(false);
+                    int amount = 1;
+
+                    if(event.getClick().equals(ClickType.RIGHT))
+                        amount = itemToGive.getMaxStackSize();
+                    itemToGive.setAmount(amount);
 
                     if (p.getInventory().firstEmpty() != -1) {
                         p.getInventory().addItem(itemToGive);
                         p.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_GIVEN_MSG
                                 .replace("ITEMNAME", (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
-                                .replace("ITEMAMOUNT", String.valueOf(1)))));
+                                .replace("ITEMAMOUNT", String.valueOf(amount)))));
                     } else {
                         p.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_PLAYER_INVENTORY_FULL_MSG
                                 .replace("ITEMNAME", (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
-                                .replace("ITEMAMOUNT", String.valueOf(1)))));
+                                .replace("ITEMAMOUNT", String.valueOf(amount)))));
                     }
                 }
 

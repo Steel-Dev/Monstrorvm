@@ -71,6 +71,12 @@ public class MobManager {
         }
         File customMobFile = new File(main.getDataFolder(), "customthings/mobs");
 
+        FileConfiguration spigotConfig =  main.getServer().spigot().getConfig();
+
+        double maxServerHealth = spigotConfig.getDouble("settings.attribute.maxHealth.max");
+        double maxServerMoveSpeed = spigotConfig.getDouble("settings.attribute.movementSpeed.max");
+        double maxServerAttackDamage = spigotConfig.getDouble("settings.attribute.attackDamage.max");
+
         main.getLogger().info("&7Loading custom mobs from " + customMobFile.getPath());
         File[] mobFiles = customMobFile.listFiles();
 
@@ -202,24 +208,57 @@ public class MobManager {
                     mob.withBurningEffect(new BurningInfo(enabled, time));
                 }
 
-                if (mobYaml.contains("MaxHP"))
-                    mob.withCustomMaxHP((float) mobYaml.getDouble("MaxHP"));
+                if (mobYaml.contains("MaxHP")) {
+                    if(mobYaml.getDouble("MaxHP") > maxServerHealth){
+                        main.getLogger().info(colorize("&e[WARNING] The specified max health " + mobYaml.getDouble("MaxHP") + " is greater than the server max defined within the spigot.yml (" + maxServerHealth + ") the mobs max health has been set to the servers max instead. - Error occured in: " + mobFile.getName()));
+                        mob.withCustomMaxHP((float) maxServerHealth);
+                    }
+                    else mob.withCustomMaxHP((float) mobYaml.getDouble("MaxHP"));
+                }
 
-                if (mobYaml.contains("MoveSpeed"))
-                    mob.withCustomMoveSpeed((float) mobYaml.getDouble("MoveSpeed"));
+                if (mobYaml.contains("MoveSpeed")) {
+                    if(mobYaml.getDouble("MoveSpeed") > maxServerMoveSpeed){
+                        main.getLogger().info(colorize("&e[WARNING] The specified move speed " + mobYaml.getDouble("MoveSpeed") + " is greater than the server max defined within the spigot.yml (" + maxServerMoveSpeed + ") the mobs move speed has been set to the servers max instead. - Error occured in: " + mobFile.getName()));
+                        mob.withCustomMoveSpeed((float) maxServerMoveSpeed);
+                    }
+                    else mob.withCustomMoveSpeed((float) mobYaml.getDouble("MoveSpeed"));
+                }
+
+                if(mobYaml.contains("AttackDamage")){
+                    if(mobYaml.getDouble("AttackDamage") > maxServerMoveSpeed){
+                        main.getLogger().info(colorize("&e[WARNING] The specified attack damage " + mobYaml.getDouble("AttackDamage") + " is greater than the server max defined within the spigot.yml (" + maxServerAttackDamage + ") the mobs attack damage has been set to the servers max instead. - Error occured in: " + mobFile.getName()));
+                        mob.withCustomAttackDamage((float) maxServerAttackDamage);
+                    }
+                    else mob.withCustomAttackDamage((float) mobYaml.getDouble("AttackDamage"));
+                }
+
+                if(mobYaml.contains("AttackKnockback"))
+                    mob.withCustomAttackKnockback((float) mobYaml.getDouble("AttackKnockback"));
+
+                if(mobYaml.contains("KnockbackResistance"))
+                    mob.withCustomKnockbackResistance((float) mobYaml.getDouble("KnockbackResistance"));
+
+                if(mobYaml.contains("Armor"))
+                    mob.withCustomArmor((float) mobYaml.getDouble("Armor"));
+
+                if(mobYaml.contains("ArmorToughness"))
+                    mob.withCustomArmorToughness((float) mobYaml.getDouble("ArmorToughness"));
+
+                if(mobYaml.contains("FlySpeed"))
+                    mob.withCustomFlySpeed((float) mobYaml.getDouble("FlySpeed"));
+
+                if(mobYaml.contains("FollowRange"))
+                    mob.withCustomFollowRange((float) mobYaml.getDouble("FollowRange"));
+
+                if(mobYaml.contains("JumpStrength"))
+                    mob.withCustomJumpStrength((float) mobYaml.getDouble("JumpStrength"));
 
                 if (mobYaml.contains("ValidSpawnEnvironments")) {
-                    List<World.Environment> validEnvironments = new ArrayList<>();
                     if (mobYaml.getStringList("ValidSpawnEnvironments").size() < 1) {
                         main.getLogger().info(colorize("&e[WARNING] You added the ValidSpawnEnvironments module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
                     }
                     for (String env : mobYaml.getStringList("ValidSpawnEnvironments")) {
-                        World.Environment environment = World.Environment.valueOf(env);
-                        if (environment == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The environment " + env + " specified in the ValidSpawnEnvironments list is invalid! - Error occured in: " + mobFile.getName()));
-                            invalid = true;
-                        }
-                        validEnvironments.add(environment);
+                        mob.withValidSpawnWorld(env);
                     }
                 }
 

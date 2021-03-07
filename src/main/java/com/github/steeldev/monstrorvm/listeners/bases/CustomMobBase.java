@@ -30,11 +30,15 @@ public class CustomMobBase implements Listener {
         this.mob = MobManager.getMob(mobID);
     }
 
+    public CustomMobBase() {
+
+    }
+
     @EventHandler
     public void customMobSpawn(EntitySpawnEvent event) {
         World world = event.getLocation().getWorld();
         if (mob == null) return;
-        if (mob.validSpawnWorlds == null || !mob.validSpawnWorlds.contains(world.getEnvironment())) return;
+        if (mob.validSpawnWorlds == null || !mob.validSpawnWorlds.contains(world.getName())) return;
         if (event.getEntity().getCustomName() != null) return;
         if (Util.isMVMob(event.getEntity())) return;
         if (mob.entityToReplace == null ||

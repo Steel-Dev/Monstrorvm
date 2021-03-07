@@ -36,6 +36,10 @@ public class CustomItemBase implements Listener {
         item = ItemManager.getItem(itemID);
     }
 
+    public CustomItemBase() {
+
+    }
+
     @EventHandler
     public void customItemAttack(EntityDamageByEntityEvent event) {
         if (item == null) return;

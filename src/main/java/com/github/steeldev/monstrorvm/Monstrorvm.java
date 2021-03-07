@@ -2,6 +2,7 @@ package com.github.steeldev.monstrorvm;
 
 import com.github.steeldev.monstrorvm.commands.admin.*;
 import com.github.steeldev.monstrorvm.listeners.inventory.MVtemListInventory;
+import com.github.steeldev.monstrorvm.listeners.server.PlayerJoin;
 import com.github.steeldev.monstrorvm.listeners.world.MVWorldListener;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
 import com.github.steeldev.monstrorvm.managers.MobManager;
@@ -9,6 +10,8 @@ import com.github.steeldev.monstrorvm.util.MVLogger;
 import com.github.steeldev.monstrorvm.util.UpdateCheck;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.config.Lang;
+import com.github.steeldev.monstrorvm.util.items.MVItem;
+import com.github.steeldev.monstrorvm.util.items.mvitems.DebugStick;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.bstats.bukkit.Metrics;
@@ -32,7 +35,7 @@ public class Monstrorvm extends JavaPlugin {
 
     public Logger logger;
 
-    Plugin skript;
+    public boolean recipesRegistered;
 
     public static Monstrorvm getInstance() {
         return instance;
@@ -58,6 +61,15 @@ public class Monstrorvm extends JavaPlugin {
         MobManager.init();
         registerListeners();
         ItemManager.registerCustomItems();
+        if(Config.DEBUG) {
+            ItemManager.registerNewItem(new MVItem("mv_debug_stick", Material.BLAZE_ROD)
+                    .withDisplayName("&5Monstrorvm Debug Stick")
+                    .withLore("&cFor development purposes.")
+                    .withLore("&7Right click a mob to view information.")
+                    .withLore("&7Right click a block to view information.")
+                    .withLore("&7Right click in off-hand with item in main-hand to view information."), this);
+            getServer().getPluginManager().registerEvents(new DebugStick(), this);
+        }
         MobManager.registerCustomMobs();
         registerCommands();
         registerInventoryListeners();
@@ -130,5 +142,6 @@ public class Monstrorvm extends JavaPlugin {
 
     public void registerListeners() {
         getServer().getPluginManager().registerEvents(new MVWorldListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoin(),this);
     }
 }

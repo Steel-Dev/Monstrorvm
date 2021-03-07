@@ -71,6 +71,10 @@ public class Util {
         return NBTAPI_PREFIX;
     }
 
+    public static String getPrefix() {
+        return PREFIX;
+    }
+
     public static String getUncoloredItemName(ItemStack item) {
         String name = (item.getItemMeta() == null) ? formalizedString(item.getType().toString()) : item.getItemMeta().getDisplayName();
         return ChatColor.stripColor(name);

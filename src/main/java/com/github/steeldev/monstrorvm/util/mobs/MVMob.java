@@ -32,7 +32,7 @@ public class MVMob {
     public float maxHP;
     public float moveSpeed;
     public int spawnChance;
-    public List<World.Environment> validSpawnWorlds;
+    public List<String> validSpawnWorlds;
     public List<MVPotionEffect> hitEffects;
     public DeathExplosionInfo explosionOnDeathInfo;
     public List<Material> dropsToRemove;
@@ -42,6 +42,15 @@ public class MVMob {
     public MobTargetEffect targetEffect;
     public BabyInfo babyInfo;
     public List<EntityType> targetableEntityTypes;
+    public float attackDamage;
+    public float attackKnockback;
+    public float knockbackResistance;
+    public float attackSpeed;
+    public float armor;
+    public float armorToughness;
+    public float flySpeed;
+    public float followRange;
+    public float jumpStrength;
     Monstrorvm main = Monstrorvm.getInstance();
 
     public MVMob(String key,
@@ -80,12 +89,57 @@ public class MVMob {
         return this;
     }
 
+    public MVMob withCustomAttackKnockback(float kb) {
+        this.attackKnockback = kb;
+        return this;
+    }
+
+    public MVMob withCustomKnockbackResistance(float kbr) {
+        this.knockbackResistance = kbr;
+        return this;
+    }
+
     public MVMob withCustomMoveSpeed(float speed) {
         this.moveSpeed = speed;
         return this;
     }
 
-    public MVMob withValidSpawnWorld(World.Environment world) {
+    public MVMob withCustomAttackDamage(float dmg) {
+        this.attackDamage = dmg;
+        return this;
+    }
+
+    public MVMob withCustomAttackSpeed(float spd) {
+        this.attackSpeed = spd;
+        return this;
+    }
+
+    public MVMob withCustomArmor(float arm) {
+        this.armor = arm;
+        return this;
+    }
+
+    public MVMob withCustomArmorToughness(float arm) {
+        this.armorToughness = arm;
+        return this;
+    }
+
+    public MVMob withCustomFlySpeed(float fly) {
+        this.flySpeed = fly;
+        return this;
+    }
+
+    public MVMob withCustomFollowRange(float range) {
+        this.followRange = range;
+        return this;
+    }
+
+    public MVMob withCustomJumpStrength(float str) {
+        this.jumpStrength = str;
+        return this;
+    }
+
+    public MVMob withValidSpawnWorld(String world) {
         if (this.validSpawnWorlds == null) this.validSpawnWorlds = new ArrayList<>();
         this.validSpawnWorlds.add(world);
         return this;
@@ -249,7 +303,7 @@ public class MVMob {
                     }.runTaskTimer(main, 70, 70);
 
                     // Make hostile towards anything
-                    new BukkitRunnable() {
+                    /*new BukkitRunnable() {
                         @Override
                         public void run() {
                             if (!finalSpawnedEnt.isDead()) {
@@ -274,19 +328,42 @@ public class MVMob {
                                 this.cancel();
                             }
                         }
-                    }.runTaskTimer(main, 5, 100);
+                    }.runTaskTimer(main, 5, 100);*/
                 }
+            }
+        }
+        // Make hostile towards anything the user defines as its targets
+        if(targetableEntityTypes != null && targetableEntityTypes.size() > 0){
+            if(spawnedEnt instanceof Mob) {
+                Mob finalSpawnedEnt1 = (Mob) spawnedEnt;
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (!finalSpawnedEnt1.isDead()) {
+                            if (finalSpawnedEnt1.getTarget() == null) {
+                                List<Entity> nearbyEntities = finalSpawnedEnt1.getNearbyEntities(5, 5, 5);
+                                List<LivingEntity> nearbyLivingEntities = new ArrayList<>();
+                                for (Entity entity : nearbyEntities) {
+                                    if (entity instanceof LivingEntity) {
+                                        if (targetableEntityTypes == null || targetableEntityTypes.contains(entity.getType()))
+                                            nearbyLivingEntities.add((LivingEntity) entity);
+                                    }
+                                }
+                                if (nearbyLivingEntities.size() > 0) {
+                                    LivingEntity newTarget = nearbyLivingEntities.get(rand.nextInt(nearbyLivingEntities.size()));
+
+                                    finalSpawnedEnt1.setTarget(newTarget);
+                                }
+                            }
+                        } else {
+                            this.cancel();
+                        }
+                    }
+                }.runTaskTimer(main, 5, 100);
             }
         }
 
         spawnedEnt.setCustomName(colorize(entityName));
-        if (maxHP > 0) {
-            spawnedEnt.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHP);
-            spawnedEnt.setHealth(maxHP);
-        }
-
-        if (moveSpeed > 0)
-            spawnedEnt.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(moveSpeed);
 
         if (equipment != null) {
             ItemChance mainHand = equipment.get(0);
@@ -355,6 +432,38 @@ public class MVMob {
                 isBaby = false;
             }
         }
+
+        if (maxHP > 0) {
+            spawnedEnt.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHP);
+            spawnedEnt.setHealth(maxHP);
+        }
+
+        if (moveSpeed > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(moveSpeed);
+
+        if(attackDamage > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(attackDamage);
+
+        if(attackKnockback > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_ATTACK_KNOCKBACK).setBaseValue(attackKnockback);
+
+        if(knockbackResistance > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE).setBaseValue(knockbackResistance);
+
+        if(armor > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_ARMOR).setBaseValue(armor);
+
+        if(armorToughness > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_ARMOR_TOUGHNESS).setBaseValue(armorToughness);
+
+        if(flySpeed > 0 && (spawnedEnt instanceof Flying))
+            spawnedEnt.getAttribute(Attribute.GENERIC_FLYING_SPEED).setBaseValue(flySpeed);
+
+        if(followRange > 0)
+            spawnedEnt.getAttribute(Attribute.GENERIC_FOLLOW_RANGE).setBaseValue(followRange);
+
+        if(jumpStrength > 0 && (spawnedEnt instanceof Horse))
+            spawnedEnt.getAttribute(Attribute.HORSE_JUMP_STRENGTH).setBaseValue(jumpStrength);
 
         MobManager.addMobToSpawned(spawnedEnt);
 

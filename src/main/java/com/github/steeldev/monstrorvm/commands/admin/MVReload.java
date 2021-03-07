@@ -1,6 +1,8 @@
 package com.github.steeldev.monstrorvm.commands.admin;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
+import com.github.steeldev.monstrorvm.listeners.bases.CustomItemBase;
+import com.github.steeldev.monstrorvm.listeners.bases.CustomMobBase;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
 import com.github.steeldev.monstrorvm.managers.MobManager;
 import com.github.steeldev.monstrorvm.util.UpdateCheck;
@@ -10,6 +12,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 import static com.github.steeldev.monstrorvm.util.Util.colorize;
@@ -20,7 +23,9 @@ public class MVReload implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
         main.loadCustomConfigs();
+        HandlerList.unregisterAll(new CustomItemBase());
         ItemManager.registerCustomItems();
+        HandlerList.unregisterAll(new CustomMobBase());
         MobManager.registerCustomMobs();
         sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, "&aSuccessfully reloaded all configurations!")));
         if (sender instanceof Player) {

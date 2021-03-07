@@ -260,7 +260,7 @@ public class MVItem {
                         customItemNBT.setFloat(compound.compoundKey, (Float) compound.compoundValue);
                         break;
                     case STRING:
-                        customItemNBT.setString(compound.compoundKey, (String) compound.compoundValue);
+                        customItemNBT.setString(compound.compoundKey, compound.compoundValue.toString());
                         break;
                     case STRING_LIST:
                         customItemNBT.setObject(compound.compoundKey,compound.compoundValue);

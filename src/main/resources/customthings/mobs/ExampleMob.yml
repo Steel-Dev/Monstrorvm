@@ -16,11 +16,9 @@ AlwaysAngry: false
 DeathEXP: 20
 MaxHP: 20
 MoveSpeed: 0.2
-SpawnChance: 20
+SpawnChance: 50
 ValidSpawnEnvironments:
-  - NORMAL
-  - THE_END
-  - NETHER
+  - world
 HitEffects:
   POISON:
     Amplifier: 10

@@ -4,6 +4,7 @@ import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.listeners.bases.CustomItemBase;
 import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.items.*;
+import com.github.steeldev.monstrorvm.util.items.mvitems.DebugStick;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemCraftingRecipe;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemRecipe;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemSmeltingRecipe;
@@ -157,7 +158,9 @@ public class ItemManager {
                     }
                 }
             }
+            main.recipesRegistered = true;
         },60l);
+
     }
 
     public static MVItem getItem(String key) {
@@ -173,6 +176,10 @@ public class ItemManager {
                 File exampItemFile = new File(main.getDataFolder(), "customthings/items/" + itemString + ".yml");
                 if (!exampItemFile.exists())
                     main.saveResource("customthings/items/" + itemString + ".yml", false);
+            }else{
+                File exampItemFile = new File(main.getDataFolder(), "customthings/items/" + itemString + ".yml");
+                if (exampItemFile.exists())
+                    exampItemFile.delete();
             }
         }
         File customItemFile = new File(main.getDataFolder(), "customthings/items");
