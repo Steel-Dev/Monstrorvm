@@ -3,13 +3,12 @@ package com.github.steeldev.monstrorvm.listeners.bases;
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
 import com.github.steeldev.monstrorvm.managers.MobManager;
+import com.github.steeldev.monstrorvm.util.Message;
 import com.github.steeldev.monstrorvm.util.Util;
-import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.items.ItemUseEffectType;
 import com.github.steeldev.monstrorvm.util.items.MVItem;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
 import com.github.steeldev.monstrorvm.util.mobs.MVMob;
-import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -25,7 +24,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import static com.github.steeldev.monstrorvm.util.Util.chanceOf;
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
 
 public class CustomItemBase implements Listener {
     Monstrorvm main = Monstrorvm.getInstance();
@@ -37,7 +35,6 @@ public class CustomItemBase implements Listener {
     }
 
     public CustomItemBase() {
-
     }
 
     @EventHandler
@@ -48,7 +45,7 @@ public class CustomItemBase implements Listener {
             ItemStack attackItem = ((Player) event.getDamager()).getInventory().getItemInMainHand();
             if (attackItem.getType().equals(Material.AIR)) return;
             if (attackItem.getType() != item.baseItem) return;
-            if (!Util.isMVItem(attackItem,item.key)) return;
+            if (!Util.isMVItem(attackItem, item.key)) return;
 
             if (item.attackEffect == null || item.attackEffect.size() < 1) return;
 
@@ -57,8 +54,8 @@ public class CustomItemBase implements Listener {
                     LivingEntity victim = (LivingEntity) event.getEntity();
                     if (chanceOf(entry.chance)) {
                         victim.addPotionEffect(entry.getPotionEffect(), false);
-                        if (Config.DEBUG)
-                            main.getLogger().info(String.format("&aCustom item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, victim.getName(), entry.getPotionEffect().toString()));
+                        if (main.config.DEBUG)
+                            Message.ITEM_INFLICTED_DEBUG.log(item.displayName, victim.getName(), entry.getPotionEffect().toString());
                     }
                 }
             }
@@ -76,7 +73,7 @@ public class CustomItemBase implements Listener {
         ItemStack useItem = event.getPlayer().getInventory().getItemInMainHand();
         if (useItem.getType().equals(Material.AIR)) return;
         if (useItem.getType() != item.baseItem) return;
-        if (!Util.isMVItem(useItem,item.key)) return;
+        if (!Util.isMVItem(useItem, item.key)) return;
 
         if (item.useEffect == null) return;
 
@@ -95,8 +92,8 @@ public class CustomItemBase implements Listener {
             for (MVPotionEffect effect : item.useEffect.potionEffects) {
                 if (chanceOf(effect.chance)) {
                     player.addPotionEffect(effect.getPotionEffect(), false);
-                    if (Config.DEBUG)
-                        main.getLogger().info(String.format("&aCustom Item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, event.getPlayer().getName(), effect.getPotionEffect().toString()));
+                    if (main.config.DEBUG)
+                        Message.ITEM_INFLICTED_DEBUG.log(item.displayName, player.getName(), effect.getPotionEffect().toString());
                 }
             }
         }
@@ -114,7 +111,7 @@ public class CustomItemBase implements Listener {
         ItemStack useItem = event.getPlayer().getInventory().getItemInMainHand();
         if (useItem.getType().equals(Material.AIR)) return;
         if (useItem.getType() != item.baseItem) return;
-        if (!Util.isMVItem(useItem,item.key)) return;
+        if (!Util.isMVItem(useItem, item.key)) return;
 
         if (item.useEffect == null) return;
 
@@ -127,8 +124,8 @@ public class CustomItemBase implements Listener {
                 LivingEntity victim = (LivingEntity) event.getRightClicked();
                 if (chanceOf(effect.chance)) {
                     victim.addPotionEffect(effect.getPotionEffect(), false);
-                    if (Config.DEBUG)
-                        main.getLogger().info(String.format("&aCustom Item &6%s &aheld by &e%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, player.getName(), victim.getName(), effect.getPotionEffect().toString()));
+                    if (main.config.DEBUG)
+                        Message.ITEM_INFLICTED_HELD_BY_DEBUG.log(item.displayName, player.getName(), victim.getName(), effect.getPotionEffect().toString());
                 }
             }
         }
@@ -146,7 +143,7 @@ public class CustomItemBase implements Listener {
         ItemStack consumedItem = event.getItem();
         if (consumedItem.getType().equals(Material.AIR)) return;
         if (consumedItem.getType() != item.baseItem) return;
-        if (!Util.isMVItem(consumedItem,item.key)) return;
+        if (!Util.isMVItem(consumedItem, item.key)) return;
 
         if (item.consumeEffect == null) return;
 
@@ -159,13 +156,13 @@ public class CustomItemBase implements Listener {
 
         for (MVPotionEffect effect : item.consumeEffect.potionEffects) {
             if (chanceOf(effect.chance)) {
-                event.getPlayer().addPotionEffect(effect.getPotionEffect(), false);
-                if (Config.DEBUG)
-                    main.getLogger().info(String.format("&aCustom Item &6%s &cinflicted &e%s &cwith &4%s&c!", item.displayName, event.getPlayer().getName(), item.consumeEffect.effectDisplay));
+                player.addPotionEffect(effect.getPotionEffect(), false);
+                if (main.config.DEBUG)
+                    Message.ITEM_INFLICTED_DEBUG.log(item.displayName, player.getName(), effect.getPotionEffect().toString());
                 effected = true;
             }
         }
         if (effected)
-            event.getPlayer().sendMessage(colorize(String.format("&7You ate %s &7and got effected with %s", item.displayName, item.consumeEffect.effectDisplay)));
+            Message.ATE_AND_GOT_EFFECTED.send(player, false, item.displayName, item.consumeEffect.effectDisplay);
     }
 }

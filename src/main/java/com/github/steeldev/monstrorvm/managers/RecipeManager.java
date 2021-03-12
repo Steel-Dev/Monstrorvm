@@ -1,7 +1,6 @@
 package com.github.steeldev.monstrorvm.managers;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
-import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.items.recipe.types.CraftType;
 import com.github.steeldev.monstrorvm.util.items.recipe.types.SmeltType;
 import org.bukkit.Bukkit;
@@ -141,7 +140,7 @@ public class RecipeManager {
 
     public static void addRecipe(Recipe recipe) {
         Bukkit.addRecipe(recipe);
-        if (Config.DEBUG)
+        if (main.config.DEBUG)
             main.getLogger().info(String.format("&aRecipe &e%s&a has been &2added.", ((Keyed) recipe).getKey()));
     }
 
@@ -151,7 +150,7 @@ public class RecipeManager {
             Recipe rec = it.next();
             if (rec != null) {
                 if (((Keyed) rec).getKey().toString().equals(key)) {
-                    if (Config.DEBUG)
+                    if (main.config.DEBUG)
                         main.getLogger().info(String.format("&aRecipe &e%s&a has been &cremoved.", key));
                     it.remove();
                 }

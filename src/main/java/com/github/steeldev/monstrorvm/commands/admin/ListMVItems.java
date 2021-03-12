@@ -1,15 +1,13 @@
 package com.github.steeldev.monstrorvm.commands.admin;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
-import com.github.steeldev.monstrorvm.listeners.inventory.MVtemListInventory;
-import com.github.steeldev.monstrorvm.util.config.Lang;
+import com.github.steeldev.monstrorvm.listeners.inventory.MVItemListInventory;
+import com.github.steeldev.monstrorvm.util.Message;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
 
 public class ListMVItems implements CommandExecutor {
     static Monstrorvm main = Monstrorvm.getInstance();
@@ -19,9 +17,9 @@ public class ListMVItems implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
 
-            MVtemListInventory.openListInventory(player, 0);
+            MVItemListInventory.openListInventory(player, 0);
         } else {
-            sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.PLAYERS_ONLY_MSG)));
+            Message.ONLY_PLAYERS_CAN_EXECUTE.send(sender, true);
         }
         return true;
     }

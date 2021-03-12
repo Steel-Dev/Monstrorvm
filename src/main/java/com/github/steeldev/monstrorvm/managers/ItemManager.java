@@ -2,9 +2,9 @@ package com.github.steeldev.monstrorvm.managers;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.listeners.bases.CustomItemBase;
-import com.github.steeldev.monstrorvm.util.config.Config;
+import com.github.steeldev.monstrorvm.util.Message;
+import com.github.steeldev.monstrorvm.util.Util;
 import com.github.steeldev.monstrorvm.util.items.*;
-import com.github.steeldev.monstrorvm.util.items.mvitems.DebugStick;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemCraftingRecipe;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemRecipe;
 import com.github.steeldev.monstrorvm.util.items.recipe.ItemSmeltingRecipe;
@@ -28,18 +28,17 @@ import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.*;
 
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
 import static com.github.steeldev.monstrorvm.util.Util.getRGB;
 
 public class ItemManager {
+    public static List<String> errorList = new ArrayList<>();
+    public static List<String> warningList = new ArrayList<>();
     static Monstrorvm main = Monstrorvm.getInstance();
     static Map<String, MVItem> itemMap;
-
     static List<String> exampleItems = new ArrayList<>(Arrays.asList("ExampleItem",
             "ExampleFood",
             "ExampleCustomModelDataItem",
@@ -54,20 +53,20 @@ public class ItemManager {
     public static void registerNewItem(MVItem item, Plugin source) {
         if (itemMap == null) itemMap = new HashMap<>();
 
-        if (itemMap.containsKey(item.key)) return;
+        if (itemMap.containsKey(item.key)) itemMap.replace(item.key, item);
 
         item.registeredBy = source;
 
         itemMap.put(item.key, item);
 
-        if(item.consumeEffect != null || item.useEffect != null || item.attackEffect != null)
+        if (item.consumeEffect != null || item.useEffect != null || item.attackEffect != null)
             main.getServer().getPluginManager().registerEvents(new CustomItemBase(item.key), main);
 
-        if (Config.DEBUG) {
+        if (main.config.DEBUG) {
             if (source != null)
-                main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered by " + source.getName() + ".", item.key));
+                Message.ITEM_REGISTERED_BY.log(item.key, source.getName());
             else
-                main.getLogger().info(String.format("&aCustom item &emonstrorvm:%s&a has been &2registered.", item.key));
+                Message.ITEM_REGISTERED.log(item.key);
         }
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> {
@@ -75,7 +74,7 @@ public class ItemManager {
                 for (ItemRecipe recipe : item.recipes) {
                     if (recipe instanceof ItemCraftingRecipe) {
                         ItemCraftingRecipe craftRec = (ItemCraftingRecipe) recipe;
-                        if(craftRec.craftingIngredientsChoice != null) {
+                        if (craftRec.craftingIngredientsChoice != null) {
                             RecipeManager.addCraftingRecipe(craftRec.key,
                                     craftRec.craftType,
                                     new RecipeChoice.ExactChoice(item.getItem()),
@@ -159,7 +158,7 @@ public class ItemManager {
                 }
             }
             main.recipesRegistered = true;
-        },60l);
+        }, 60l);
 
     }
 
@@ -171,12 +170,14 @@ public class ItemManager {
 
     public static void registerCustomItems() {
         if (itemMap == null) itemMap = new HashMap<>();
+        errorList.clear();
+        warningList.clear();
         for (String itemString : exampleItems) {
-            if (Config.EXAMPLES_ENABLED) {
+            if (main.config.EXAMPLES_ENABLED) {
                 File exampItemFile = new File(main.getDataFolder(), "customthings/items/" + itemString + ".yml");
                 if (!exampItemFile.exists())
                     main.saveResource("customthings/items/" + itemString + ".yml", false);
-            }else{
+            } else {
                 File exampItemFile = new File(main.getDataFolder(), "customthings/items/" + itemString + ".yml");
                 if (exampItemFile.exists())
                     exampItemFile.delete();
@@ -189,7 +190,7 @@ public class ItemManager {
 
         if (itemFiles == null ||
                 itemFiles.length < 1) {
-            main.getLogger().info(colorize("&e[WARNING] There are no Custom Items in the custom item directory, skipping loading."));
+            Util.log("&e[WARNING] There are no Custom Items in the custom item directory, skipping loading.");
             return;
         } else {
             main.getLogger().info("&7Successfully loaded " + itemFiles.length + " custom items! Registering them now.");
@@ -198,22 +199,24 @@ public class ItemManager {
         for (File itemFile : itemFiles) {
             boolean invalid = false;
             boolean canRegister = true;
-            if (!Config.EXAMPLES_ENABLED) {
+            if (!main.config.EXAMPLES_ENABLED) {
                 if (exampleItems.contains(itemFile.getName().replace(".yml", "")))
                     canRegister = false;
             }
             if (canRegister) {
                 FileConfiguration itemYaml = YamlConfiguration.loadConfiguration(itemFile);
 
-                if (Config.DEBUG)
+                if (main.config.DEBUG)
                     main.getLogger().info("Registering " + itemFile.getName());
 
                 if (!itemYaml.contains("Key")) {
-                    main.getLogger().info(colorize("&c[ERROR] A custom item MUST specify a Key! e.g: 'example_item' - Error occured in: " + itemFile.getName()));
+                    Util.log("&c[ERROR] A custom item MUST specify a Key! e.g: 'example_item' - Error occured in: " + itemFile.getName());
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
                 if (!itemYaml.contains("BaseItem")) {
-                    main.getLogger().info(colorize("&c[ERROR] A custom item MUST specify a BaseItem! e.g: 'STICK' - Error occured in: " + itemFile.getName()));
+                    Util.log("&c[ERROR] A custom item MUST specify a BaseItem! e.g: 'STICK' - Error occured in: " + itemFile.getName());
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
 
@@ -221,26 +224,29 @@ public class ItemManager {
                 Material baseItem = Material.valueOf(itemYaml.getString("BaseItem"));
                 if (baseItem == null ||
                         baseItem.equals(Material.AIR)) {
-                    main.getLogger().info(colorize("&c[ERROR] The specified BaseItem in " + itemFile.getName() + " is invalid, or air!"));
+                    Util.log("&c[ERROR] The specified BaseItem in " + itemFile.getName() + " is invalid, or air!");
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
 
                 MVItem item = new MVItem(itemKey, baseItem);
 
-                if(itemYaml.contains("Category")){
+                if (itemYaml.contains("Category")) {
                     item.withCategory(itemYaml.getString("Category"));
                 }
 
                 if (itemYaml.contains("DisplayName")) {
                     if (itemYaml.getString("DisplayName").equals("")) {
-                        main.getLogger().info(colorize("&e[WARNING] The specified DisplayName for " + itemFile.getName() + " is empty!"));
+                        Util.log("&e[WARNING] The specified DisplayName for " + itemFile.getName() + " is empty!");
+                        warningList.add(Util.latestLog);
                     }
                     item.withDisplayName(itemYaml.getString("DisplayName"));
                 }
 
                 if (itemYaml.contains("Lore")) {
                     if (itemYaml.getStringList("Lore").size() < 1) {
-                        main.getLogger().info(colorize("&c[ERROR] The specified Lore for " + itemFile.getName() + " is empty!"));
+                        Util.log("&c[ERROR] The specified Lore for " + itemFile.getName() + " is empty!");
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     for (String line : itemYaml.getStringList("Lore")) {
@@ -253,7 +259,8 @@ public class ItemManager {
 
                 if (itemYaml.contains("AttributeInfo")) {
                     if (itemYaml.getConfigurationSection("AttributeInfo").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the EntitiesToReplace module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
+                        Util.log("&e[WARNING] You added the EntitiesToReplace module, but didn't populate the list! - Warning occured in: " + itemFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : itemYaml.getConfigurationSection("AttributeInfo").getKeys(false)) {
                         ConfigurationSection attributeSection = itemYaml.getConfigurationSection("AttributeInfo." + entry);
@@ -261,15 +268,18 @@ public class ItemManager {
                         EquipmentSlot slot = EquipmentSlot.valueOf(attributeSection.getString("Slot"));
                         Attribute attribute = Attribute.valueOf(entry);
                         if (slot == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified Slot for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified Slot for " + entry + " in " + itemFile.getName() + " is invalid!");
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (attribute == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified Attribute for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified Attribute for " + entry + " in " + itemFile.getName() + " is invalid!");
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!attributeSection.contains("Value")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Value for the AttributeModifier " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Value for the AttributeModifier " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         double value = attributeSection.getDouble("Value");
@@ -279,17 +289,20 @@ public class ItemManager {
 
                 if (itemYaml.contains("EnchantInfo")) {
                     if (itemYaml.getConfigurationSection("EnchantInfo").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the EnchantInfo module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                        Util.log("&e[WARNING] You added the EnchantInfo module, but didn't populate list! - Warning occured in: " + itemFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : itemYaml.getConfigurationSection("EnchantInfo").getKeys(false)) {
                         ConfigurationSection enchantSection = itemYaml.getConfigurationSection("EnchantInfo." + entry);
                         Enchantment enchant = Enchantment.getByName(entry);
                         if (enchant == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified Enchant for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified Enchant for " + entry + " in " + itemFile.getName() + " is invalid!");
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!enchantSection.contains("Level")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Level for the Enchant " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Level for the Enchant " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int level = enchantSection.getInt("Level");
@@ -305,25 +318,30 @@ public class ItemManager {
                     ConfigurationSection potEffectSection = itemYaml.getConfigurationSection("UseEffect.PotionEffects");
                     if (potEffectSection != null) {
                         if (potEffectSection.getKeys(false).size() < 1) {
-                            main.getLogger().info(colorize("&e[WARNING] You added the PotionEffects module to the UseEffect module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                            Util.log("&e[WARNING] You added the PotionEffects module to the UseEffect module, but didn't populate list! - Warning occured in: " + itemFile.getName());
+                            warningList.add(Util.latestLog);
                         }
                         for (String entry : potEffectSection.getKeys(false)) {
                             ConfigurationSection potSection = itemYaml.getConfigurationSection("UseEffect.PotionEffects." + entry);
                             PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                             if (potionEffectType == null) {
-                                main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                                Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!");
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Amplifier")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Duration")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Chance")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             int amp = potSection.getInt("Amplifier");
@@ -342,25 +360,30 @@ public class ItemManager {
                 if (itemYaml.contains("AttackEffects")) {
                     List<MVPotionEffect> potionEffectList = new ArrayList<>();
                     if (itemYaml.getConfigurationSection("AttackEffects").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the AttackEffects module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                        Util.log("&e[WARNING] You added the AttackEffects module, but didn't populate list! - Warning occured in: " + itemFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : itemYaml.getConfigurationSection("AttackEffects").getKeys(false)) {
                         ConfigurationSection potSection = itemYaml.getConfigurationSection("AttackEffects." + entry);
                         PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                         if (potionEffectType == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!");
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Amplifier")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Duration")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Chance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int amp = potSection.getInt("Amplifier");
@@ -380,25 +403,30 @@ public class ItemManager {
 
                     List<MVPotionEffect> potionEffectList = new ArrayList<>();
                     if (itemYaml.getConfigurationSection("ConsumeEffect.PotionEffects").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the PotionEffects module to the ConsumeEffect module, but didn't populate list! - Error occured in: " + itemFile.getName()));
+                        Util.log("&e[WARNING] You added the PotionEffects module to the ConsumeEffect module, but didn't populate list! - Warning occured in: " + itemFile.getName());
+                        errorList.add(Util.latestLog);
                     }
                     for (String entry : itemYaml.getConfigurationSection("ConsumeEffect.PotionEffects").getKeys(false)) {
                         ConfigurationSection potSection = itemYaml.getConfigurationSection("ConsumeEffect.PotionEffects." + entry);
                         PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                         if (potionEffectType == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " in " + itemFile.getName() + " is invalid!");
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Amplifier")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Duration")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Chance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int amp = potSection.getInt("Amplifier");
@@ -416,17 +444,20 @@ public class ItemManager {
                 if (itemYaml.contains("NBT")) {
                     List<ItemNBTCompound> nbtList = new ArrayList<>();
                     if (itemYaml.getConfigurationSection("NBT").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the NBT module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
+                        Util.log("&e[WARNING] You added the NBT module, but didn't populate the list! - Warning occured in: " + itemFile.getName());
+                        errorList.add(Util.latestLog);
                     }
                     for (String entry : itemYaml.getConfigurationSection("NBT").getKeys(false)) {
                         ConfigurationSection compoundSec = itemYaml.getConfigurationSection("NBT." + entry);
 
                         if (!compoundSec.contains("Key")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Key for the NBTCompound " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Key for the NBTCompound " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!compoundSec.contains("Value")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Value for the NBTCompound " + entry + "! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Value for the NBTCompound " + entry + "! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
 
@@ -445,7 +476,8 @@ public class ItemManager {
                     int[] rgb = getRGB(itemYaml.getString("Color").replace("#", ""));
                     Color color = Color.fromRGB(rgb[0], rgb[1], rgb[2]);
                     if (color == null) {
-                        main.getLogger().info(colorize("&c[ERROR] The specified Color in " + itemFile.getName() + " is invalid!"));
+                        Util.log("&c[ERROR] The specified Color in " + itemFile.getName() + " is invalid!");
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     item.withColor(color);
@@ -453,10 +485,12 @@ public class ItemManager {
 
                 if (itemYaml.contains("SkullInfo")) {
                     if (itemYaml.contains("SkullInfo.OwnerName") && itemYaml.contains("SkullInfo.Base64")) {
-                        main.getLogger().info(colorize("&c[ERROR] You can only have Base64 or OwnerName in SkullInfo, not both! Error occured in -  " + itemFile.getName()));
+                        Util.log("&c[ERROR] You can only have Base64 or OwnerName in SkullInfo, not both! Error occured in -  " + itemFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     } else if (!itemYaml.contains("SkullInfo.OwnerName") && !itemYaml.contains("SkullInfo.Base64")) {
-                        main.getLogger().info(colorize("&c[ERROR] You must either have Base64 or OwnerName in SkullInfo! Found neither! Error occured in -  " + itemFile.getName()));
+                        Util.log("&c[ERROR] You must either have Base64 or OwnerName in SkullInfo! Found neither! Error occured in -  " + itemFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
 
@@ -466,13 +500,13 @@ public class ItemManager {
                         item.withSkullOwnerByBase64(itemYaml.getString("SkullInfo.Base64"));
                 }
 
-                if(itemYaml.contains("Flags")){
-                    for (String flag: itemYaml.getStringList("Flags")) {
+                if (itemYaml.contains("Flags")) {
+                    for (String flag : itemYaml.getStringList("Flags")) {
                         item.withFlag(ItemFlag.valueOf(flag));
                     }
                 }
 
-                if(itemYaml.contains("BookInfo")){
+                if (itemYaml.contains("BookInfo")) {
                     String author = itemYaml.getString("BookInfo.Author");
                     String title = itemYaml.getString("BookInfo.Title");
                     BookMeta.Generation generation = BookMeta.Generation.valueOf(itemYaml.getString("BookInfo.Generation").toUpperCase());
@@ -481,97 +515,113 @@ public class ItemManager {
                     item.withAuthor(author);
                     item.withTitle(title);
                     item.withGeneration(generation);
-                    for(String page : pages){
+                    for (String page : pages) {
                         item.withPage(page);
                     }
                 }
 
                 if (itemYaml.contains("Recipes")) {
                     if (itemYaml.getConfigurationSection("Recipes").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the Recipes module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
+                        Util.log("&e[WARNING] You added the Recipes module, but didn't populate the list! - Warning occured in: " + itemFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : itemYaml.getConfigurationSection("Recipes").getKeys(false)) {
                         ItemRecipeType type = ItemRecipeType.valueOf(entry);
                         if (type == null || !Arrays.asList(ItemRecipeType.values()).contains(type)) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified RecipeType " + entry + " is invalid! Error occured in -  " + itemFile.getName()));
+                            Util.log("&c[ERROR] The specified RecipeType " + entry + " is invalid! Error occured in -  " + itemFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         ConfigurationSection recipeSec = itemYaml.getConfigurationSection("Recipes." + entry);
                         switch (type) {
                             case CRAFTING:
                                 if (recipeSec.getKeys(false).size() < 1) {
-                                    main.getLogger().info(colorize("&e[WARNING] You specified the CRAFTING section in the Recipes Module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
+                                    Util.log("&e[WARNING] You specified the CRAFTING section in the Recipes Module, but didn't populate the list! - Warning occured in: " + itemFile.getName());
+                                    warningList.add(Util.latestLog);
                                     invalid = true;
                                 }
                                 for (String key : recipeSec.getKeys(false)) {
                                     if (key.contains("SHAPED")) {
                                         ConfigurationSection shapedSec = recipeSec.getConfigurationSection("SHAPED");
-                                        if(!shapedSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                        if (!shapedSec.contains("Key")) {
+                                            Util.log("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         if (!shapedSec.contains("Pattern")) {
-                                            main.getLogger().info(colorize("&c[ERROR] You specified the RecipeType as SHAPED, but you didn't provide a pattern! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] You specified the RecipeType as SHAPED, but you didn't provide a pattern! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         List<String> pattern = shapedSec.getStringList("Pattern");
                                         if (pattern.size() < 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] You specified a Pattern in the SHAPED recipe, but you didn't define all 3 rows! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] You specified a Pattern in the SHAPED recipe, but you didn't define all 3 rows! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         if (pattern.get(0).length() < 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] The first row of the SHAPED recipe is less than 3 characters! If you meant for a slot to be nothing, just put a space! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] The first row of the SHAPED recipe is less than 3 characters! If you meant for a slot to be nothing, just put a space! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         if (pattern.get(0).length() > 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] The first row of the SHAPED recipe has too many characters! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] The first row of the SHAPED recipe has too many characters! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
 
                                         if (pattern.get(1).length() < 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] The second row of the SHAPED recipe is less than 3 characters! If you meant for a slot to be nothing, just put a space! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] The second row of the SHAPED recipe is less than 3 characters! If you meant for a slot to be nothing, just put a space! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         if (pattern.get(1).length() > 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] The second row of the SHAPED recipe has too many characters! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] The second row of the SHAPED recipe has too many characters! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
 
                                         if (pattern.get(2).length() < 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] The third row of the SHAPED recipe is less than 3 characters! If you meant for a slot to be nothing, just put a space! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] The third row of the SHAPED recipe is less than 3 characters! If you meant for a slot to be nothing, just put a space! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         if (pattern.get(2).length() > 3) {
-                                            main.getLogger().info(colorize("&c[ERROR] The third row of the SHAPED recipe has too many characters! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] The third row of the SHAPED recipe has too many characters! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
 
                                         if (!shapedSec.contains("Ingredients")) {
-                                            main.getLogger().info(colorize("&c[ERROR] You specified the RecipeType as SHAPED, but you didn't provide any ingredients! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] You specified the RecipeType as SHAPED, but you didn't provide any ingredients! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
 
                                         ConfigurationSection ingredients = shapedSec.getConfigurationSection("Ingredients");
                                         if (ingredients.getKeys(false).size() < 1) {
-                                            main.getLogger().info(colorize("&c[ERROR] You specified Ingredients in the SHAPED recipe, but didn't populate it! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] You specified Ingredients in the SHAPED recipe, but didn't populate it! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         Map<Character, RecipeChoice> finalIngredients = new HashMap<>();
 
                                         for (String mat : ingredients.getKeys(false)) {
-                                            if(!mat.startsWith("monstrorvm:")) {
+                                            if (!mat.startsWith("monstrorvm:")) {
                                                 Material ingMat = Material.valueOf(ingredients.getString(mat));
                                                 Character recChar = mat.toCharArray()[0];
                                                 if (ingMat == null) {
-                                                    main.getLogger().info(colorize("&c[ERROR] The specified Material " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName()));
+                                                    Util.log("&c[ERROR] The specified Material " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName());
+                                                    errorList.add(Util.latestLog);
                                                     invalid = true;
                                                 }
                                                 finalIngredients.put(recChar, new RecipeChoice.MaterialChoice(ingMat));
-                                            }else{
-                                                ItemStack ingItem = getItem(mat.replace("monstrorvm:","")).getItem();
+                                            } else {
+                                                ItemStack ingItem = getItem(mat.replace("monstrorvm:", "")).getItem();
                                                 Character recChar = mat.toCharArray()[0];
                                                 if (ingItem == null) {
-                                                    main.getLogger().info(colorize("&c[ERROR] The specified Item " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName()));
+                                                    Util.log("&c[ERROR] The specified Item " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName());
+                                                    errorList.add(Util.latestLog);
                                                     invalid = true;
                                                 }
                                                 finalIngredients.put(recChar, new RecipeChoice.ExactChoice(ingItem));
@@ -585,18 +635,21 @@ public class ItemManager {
 
                                     } else if (key.contains("SHAPELESS")) {
                                         ConfigurationSection shapelessSec = recipeSec.getConfigurationSection("SHAPELESS");
-                                        if(!shapelessSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                        if (!shapelessSec.contains("Key")) {
+                                            Util.log("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         if (!shapelessSec.contains("Ingredients")) {
-                                            main.getLogger().info(colorize("&c[ERROR] You specified the RecipeType as SHAPELESS, but you didn't provide any ingredients! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] You specified the RecipeType as SHAPELESS, but you didn't provide any ingredients! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
 
                                         ConfigurationSection ingredients = shapelessSec.getConfigurationSection("Ingredients");
                                         if (ingredients.getKeys(false).size() < 1) {
-                                            main.getLogger().info(colorize("&c[ERROR] You specified Ingredients in the SHAPED recipe, but didn't populate it! Error occured in -  " + itemFile.getName()));
+                                            Util.log("&c[ERROR] You specified Ingredients in the SHAPED recipe, but didn't populate it! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         Map<Character, RecipeChoice> finalIngredients = new HashMap<>();
@@ -605,7 +658,8 @@ public class ItemManager {
                                             Material ingMat = Material.valueOf(ingredients.getString(mat));
                                             Character recChar = mat.toCharArray()[0];
                                             if (ingMat == null) {
-                                                main.getLogger().info(colorize("&c[ERROR] The specified Material " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName()));
+                                                Util.log("&c[ERROR] The specified Material " + ingredients.getString(mat) + " in the SHAPED recipe ingredient list is invalid! Error occured in -  " + itemFile.getName());
+                                                errorList.add(Util.latestLog);
                                                 invalid = true;
                                             }
                                             finalIngredients.put(recChar, new RecipeChoice.MaterialChoice(ingMat));
@@ -616,21 +670,24 @@ public class ItemManager {
 
                                         item.withRecipe(new ItemCraftingRecipe(CraftType.SHAPELESS, finalIngredients, amount, shapelessSec.getString("Key")));
                                     } else {
-                                        main.getLogger().info(colorize("&c[ERROR] The specified Recipe Type " + entry + " in the Recipes list is invalid! Error occured in -  " + itemFile.getName()));
+                                        Util.log("&c[ERROR] The specified Recipe Type " + entry + " in the Recipes list is invalid! Error occured in -  " + itemFile.getName());
+                                        errorList.add(Util.latestLog);
                                         invalid = true;
                                     }
                                 }
                                 break;
                             case SMELTING:
                                 if (recipeSec.getKeys(false).size() < 1) {
-                                    main.getLogger().info(colorize("&e[WARNING] You specified the SMELTING section in the Recipes Module, but didn't populate the list! - Error occured in: " + itemFile.getName()));
+                                    Util.log("&e[WARNING] You specified the SMELTING section in the Recipes Module, but didn't populate the list! - Error occured in: " + itemFile.getName());
+                                    errorList.add(Util.latestLog);
                                     invalid = true;
                                 }
                                 for (String key : recipeSec.getKeys(false)) {
                                     if (key.contains("FURNACE")) {
                                         ConfigurationSection furnaceSec = recipeSec.getConfigurationSection("FURNACE");
-                                        if(!furnaceSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                        if (!furnaceSec.contains("Key")) {
+                                            Util.log("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         String result = furnaceSec.getString("Result");
@@ -641,8 +698,9 @@ public class ItemManager {
                                         item.withRecipe(new ItemSmeltingRecipe(SmeltType.FURNACE, result, time, exp, amount, furnaceSec.getString("Key")));
                                     } else if (key.contains("SMOKER")) {
                                         ConfigurationSection smokerSec = recipeSec.getConfigurationSection("SMOKER");
-                                        if(!smokerSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                        if (!smokerSec.contains("Key")) {
+                                            Util.log("&c[ERROR] You specify a Key for a recipe! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         String result = smokerSec.getString("Result");
@@ -653,8 +711,9 @@ public class ItemManager {
                                         item.withRecipe(new ItemSmeltingRecipe(SmeltType.SMOKER, result, time, exp, amount, smokerSec.getString("Key")));
                                     } else if (key.contains("BLASTING")) {
                                         ConfigurationSection blastingSec = recipeSec.getConfigurationSection("BLASTING");
-                                        if(!blastingSec.contains("Key")){
-                                            main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                        if (!blastingSec.contains("Key")) {
+                                            Util.log("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName());
+                                            errorList.add(Util.latestLog);
                                             invalid = true;
                                         }
                                         String result = blastingSec.getString("Result");
@@ -664,20 +723,22 @@ public class ItemManager {
 
                                         item.withRecipe(new ItemSmeltingRecipe(SmeltType.BLASTING, result, time, exp, amount, blastingSec.getString("Key")));
                                     } else {
-                                        main.getLogger().info(colorize("&c[ERROR] The specified Recipe Type " + entry + " in the Recipes list is invalid! Error occured in -  " + itemFile.getName()));
+                                        Util.log("&c[ERROR] The specified Recipe Type " + entry + " in the Recipes list is invalid! Error occured in -  " + itemFile.getName());
+                                        errorList.add(Util.latestLog);
                                         invalid = true;
                                     }
                                 }
                                 break;
                             case SMITHING:
-                                if(!recipeSec.contains("Key")){
-                                    main.getLogger().info(colorize("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName()));
+                                if (!recipeSec.contains("Key")) {
+                                    Util.log("&c[ERROR] You must specify a Key for a recipe! Error occured in -  " + itemFile.getName());
+                                    errorList.add(Util.latestLog);
                                     invalid = true;
                                 }
                                 String itemNeeded = recipeSec.getString("ItemNeeded");
                                 String baseMat = recipeSec.getString("BaseMat");
 
-                                item.withRecipe(new ItemSmithingRecipe(itemNeeded, baseMat,recipeSec.getString("Key")));
+                                item.withRecipe(new ItemSmithingRecipe(itemNeeded, baseMat, recipeSec.getString("Key")));
                                 break;
                             default:
                                 throw new IllegalStateException("Unexpected value: " + type);
@@ -693,7 +754,7 @@ public class ItemManager {
                     } else
                         registerNewItem(item, null);
                 } else {
-                    main.getLogger().info(colorize("&e[WARNING] The custom item " + itemFile.getName() + " has not been registered due to errors!"));
+                    Util.log("&e[WARNING] The custom item " + itemFile.getName() + " has not been registered due to errors!");
                 }
             }
         }

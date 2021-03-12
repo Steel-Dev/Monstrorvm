@@ -2,7 +2,7 @@ package com.github.steeldev.monstrorvm.listeners.inventory;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
-import com.github.steeldev.monstrorvm.util.config.Lang;
+import com.github.steeldev.monstrorvm.util.Message;
 import com.github.steeldev.monstrorvm.util.items.MVItem;
 import com.google.common.collect.Lists;
 import de.tr7zw.changeme.nbtapi.NBTItem;
@@ -23,7 +23,7 @@ import java.util.List;
 
 import static com.github.steeldev.monstrorvm.util.Util.*;
 
-public class MVtemListInventory implements Listener {
+public class MVItemListInventory implements Listener {
     public static String INVENTORY_NAME = "&cMonstrorvm &eItems";
     static Monstrorvm main = Monstrorvm.getInstance();
 
@@ -45,17 +45,17 @@ public class MVtemListInventory implements Listener {
             ItemStack bnItem = customItem.getItem();
             ItemMeta bnItemMeta = bnItem.getItemMeta();
             List<String> lore = (bnItemMeta.getLore() == null) ? new ArrayList<>() : bnItemMeta.getLore();
-            if(customItem.category != null){
+            if (customItem.category != null) {
                 lore.add("");
                 lore.add(colorize("&7&oCategory:"));
                 lore.add(colorize("<#2883d2>&o" + customItem.category));
             }
             lore.add(colorize("&7&oAdded By:"));
-            lore.add(colorize("<#2883d2>&o" + ((customItem.registeredBy != null) ? customItem.registeredBy.getName() : "<#2883d2>&o"+main.getName())));
+            lore.add(colorize("<#2883d2>&o" + ((customItem.registeredBy != null) ? customItem.registeredBy.getName() : "<#2883d2>&o" + main.getName())));
             lore.add("");
             lore.add(colorize("&7&oLeft-Click to give x1 of item."));
-            if(customItem.getItem().getMaxStackSize() > 1)
-                lore.add(colorize("&7&oRight-Click to give x" + customItem.getItem().getMaxStackSize() +" of item."));
+            if (customItem.getItem().getMaxStackSize() > 1)
+                lore.add(colorize("&7&oRight-Click to give x" + customItem.getItem().getMaxStackSize() + " of item."));
             bnItemMeta.setLore(lore);
             bnItem.setItemMeta(bnItemMeta);
             NBTItem bnItemNBT = new NBTItem(bnItem);
@@ -157,19 +157,16 @@ public class MVtemListInventory implements Listener {
                     ItemStack itemToGive = bnItem.getItem(false);
                     int amount = 1;
 
-                    if(event.getClick().equals(ClickType.RIGHT))
+                    if (event.getClick().equals(ClickType.RIGHT))
                         amount = itemToGive.getMaxStackSize();
                     itemToGive.setAmount(amount);
 
+                    String item = (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName;
                     if (p.getInventory().firstEmpty() != -1) {
                         p.getInventory().addItem(itemToGive);
-                        p.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_GIVEN_MSG
-                                .replace("ITEMNAME", (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
-                                .replace("ITEMAMOUNT", String.valueOf(amount)))));
+                        Message.GIVEN_ITEM.send(p, true, amount, item, p.getDisplayName());
                     } else {
-                        p.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_PLAYER_INVENTORY_FULL_MSG
-                                .replace("ITEMNAME", (bnItem.displayName == null) ? formalizedString(bnItem.baseItem.toString()) : bnItem.displayName).replace("PLAYERNAME", p.getDisplayName())
-                                .replace("ITEMAMOUNT", String.valueOf(amount)))));
+                        Message.GIVE_ITEM_FAIL_FULL_INV.send(p, true, amount, item, p.getDisplayName());
                     }
                 }
 

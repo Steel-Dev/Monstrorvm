@@ -2,12 +2,13 @@ package com.github.steeldev.monstrorvm.listeners.bases;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.MobManager;
+import com.github.steeldev.monstrorvm.util.Message;
 import com.github.steeldev.monstrorvm.util.Util;
-import com.github.steeldev.monstrorvm.util.config.Config;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
 import com.github.steeldev.monstrorvm.util.mobs.ItemChance;
 import com.github.steeldev.monstrorvm.util.mobs.MVMob;
 import org.bukkit.ChatColor;
+import org.bukkit.Difficulty;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -17,7 +18,6 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 import static com.github.steeldev.monstrorvm.util.Util.chanceOf;
 import static com.github.steeldev.monstrorvm.util.Util.rand;
@@ -31,7 +31,6 @@ public class CustomMobBase implements Listener {
     }
 
     public CustomMobBase() {
-
     }
 
     @EventHandler
@@ -39,6 +38,7 @@ public class CustomMobBase implements Listener {
         World world = event.getLocation().getWorld();
         if (mob == null) return;
         if (mob.validSpawnWorlds == null || !mob.validSpawnWorlds.contains(world.getName())) return;
+        if (!mob.spawnNaturally) return;
         if (event.getEntity().getCustomName() != null) return;
         if (Util.isMVMob(event.getEntity())) return;
         if (mob.entityToReplace == null ||
@@ -47,7 +47,7 @@ public class CustomMobBase implements Listener {
 
         if (chanceOf(mob.spawnChance)) {
             int bnMobCount = MobManager.getSpawnedMobs().size();
-            if (bnMobCount >= Config.CUSTOM_MOB_CAP) {
+            if (bnMobCount >= main.config.CUSTOM_MOB_CAP) {
                 event.setCancelled(true);
                 return;
             }
@@ -75,7 +75,27 @@ public class CustomMobBase implements Listener {
                 }
             }
         }
-        event.setDroppedExp(rand.nextInt(mob.deathEXP));
+        World world = event.getEntity().getWorld();
+        if (mob.deathEXP != null && mob.deathEXP.size() > 0) {
+            int exp = 0;
+
+            // If difficulty is Peaceful OR if the list is only 1
+            if (world.getDifficulty().equals(Difficulty.PEACEFUL) || mob.deathEXP.size() < 2) exp = mob.deathEXP.get(0);
+                // Else, if the list is greater than 1, and the difficulty is Easy
+            else if (mob.deathEXP.size() > 1 && world.getDifficulty().equals(Difficulty.EASY))
+                exp = mob.deathEXP.get(1);
+                // Else, if the list is greater than 2, and the difficulty is Normal
+            else if (mob.deathEXP.size() > 2 && world.getDifficulty().equals(Difficulty.NORMAL))
+                exp = mob.deathEXP.get(2);
+                // Else, if the list is greater than 3, and the difficulty is Hard
+            else if (mob.deathEXP.size() > 3 && world.getDifficulty().equals(Difficulty.HARD))
+                exp = mob.deathEXP.get(3);
+
+            if (main.config.DEBUG)
+                main.getLogger().info("MOB DIED - Difficulty: " + world.getDifficulty().toString() + " | DeathEXP: " + exp);
+
+            event.setDroppedExp(rand.nextInt(exp));
+        }
 
         if (mob.explosionOnDeathInfo == null) return;
         if (!mob.explosionOnDeathInfo.enabled) return;
@@ -98,8 +118,8 @@ public class CustomMobBase implements Listener {
                     LivingEntity victim = (LivingEntity) event.getEntity();
                     if (chanceOf(entry.chance)) {
                         victim.addPotionEffect(entry.getPotionEffect(), false);
-                        if (Config.DEBUG)
-                            main.getLogger().info(String.format("&aCustom Mob &6%s &cinflicted &e%s &cwith &4%s&c!", mob.getUncoloredName(), victim.getName(), entry.effect));
+                        if (main.config.DEBUG)
+                            Message.MOB_INFLICTED_DEBUG.log(mob.getUncoloredName(), victim.getName(), entry.effect.toString());
                     }
                 }
             }

@@ -2,7 +2,8 @@ package com.github.steeldev.monstrorvm.managers;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.listeners.bases.CustomMobBase;
-import com.github.steeldev.monstrorvm.util.config.Config;
+import com.github.steeldev.monstrorvm.util.Message;
+import com.github.steeldev.monstrorvm.util.Util;
 import com.github.steeldev.monstrorvm.util.misc.MVParticle;
 import com.github.steeldev.monstrorvm.util.misc.MVPotionEffect;
 import com.github.steeldev.monstrorvm.util.misc.MVSound;
@@ -19,16 +20,13 @@ import org.bukkit.potion.PotionEffectType;
 import java.io.File;
 import java.util.*;
 
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
-
 public class MobManager {
+    public static List<String> errorList = new ArrayList<>();
+    public static List<String> warningList = new ArrayList<>();
     static Monstrorvm main = Monstrorvm.getInstance();
     public static NamespacedKey customMobKey = new NamespacedKey(main, "monstrorvm_mob");
     static Map<String, MVMob> mobMap;
-
-
     static Map<UUID, LivingEntity> spawnedCustomMobs;
-
     static List<String> exampleMobs = new ArrayList<>(Arrays.asList("ExampleMob"));
 
     public static void init() {
@@ -46,11 +44,11 @@ public class MobManager {
 
         main.getServer().getPluginManager().registerEvents(new CustomMobBase(mob.key), main);
 
-        if (Config.DEBUG) {
+        if (main.config.DEBUG) {
             if (source != null)
-                main.getLogger().info(String.format("&aCustom mob &emonstrorvm:%s&a has been &2registered by " + source.getName() + ".", mob.key));
+                Message.MOB_REGISTERED_BY.log(mob.key, source.getName());
             else
-                main.getLogger().info(String.format("&aCustom mob &emonstrorvm:%s&a has been &2registered.", mob.key));
+                Message.MOB_REGISTERED.log(mob.key);
         }
     }
 
@@ -62,69 +60,80 @@ public class MobManager {
 
     public static void registerCustomMobs() {
         if (mobMap == null) mobMap = new HashMap<>();
+        errorList.clear();
+        warningList.clear();
         for (String mobString : exampleMobs) {
-            if (Config.EXAMPLES_ENABLED) {
+            if (main.config.EXAMPLES_ENABLED) {
                 File exampMobFile = new File(main.getDataFolder(), "customthings/mobs/" + mobString + ".yml");
                 if (!exampMobFile.exists())
                     main.saveResource("customthings/mobs/" + mobString + ".yml", false);
+            } else {
+                File exampMobFile = new File(main.getDataFolder(), "customthings/mobs/" + mobString + ".yml");
+                if (exampMobFile.exists())
+                    exampMobFile.delete();
             }
         }
         File customMobFile = new File(main.getDataFolder(), "customthings/mobs");
 
-        FileConfiguration spigotConfig =  main.getServer().spigot().getConfig();
+        FileConfiguration spigotConfig = main.getServer().spigot().getConfig();
 
         double maxServerHealth = spigotConfig.getDouble("settings.attribute.maxHealth.max");
         double maxServerMoveSpeed = spigotConfig.getDouble("settings.attribute.movementSpeed.max");
         double maxServerAttackDamage = spigotConfig.getDouble("settings.attribute.attackDamage.max");
 
-        main.getLogger().info("&7Loading custom mobs from " + customMobFile.getPath());
+        Util.log("&7Loading custom mobs from " + customMobFile.getPath());
         File[] mobFiles = customMobFile.listFiles();
 
         if (mobFiles == null ||
                 mobFiles.length < 1) {
-            main.getLogger().info(colorize("&e[WARNING] There are no Custom Mobs in the custom mob directory, skipping loading."));
+            Util.log("&e[WARNING] There are no Custom Mobs in the custom mob directory, skipping loading.");
             return;
         } else {
-            main.getLogger().info("&7Successfully loaded " + mobFiles.length + " custom mobs! Registering them now.");
+            Util.log("&7Successfully loaded " + mobFiles.length + " custom mobs! Registering them now.");
         }
 
         for (File mobFile : mobFiles) {
             boolean invalid = false;
             boolean canRegister = true;
-            if (!Config.EXAMPLES_ENABLED) {
+            if (!main.config.EXAMPLES_ENABLED) {
                 if (exampleMobs.contains(mobFile.getName().replace(".yml", "")))
                     canRegister = false;
             }
             if (canRegister) {
                 FileConfiguration mobYaml = YamlConfiguration.loadConfiguration(mobFile);
 
-                if (Config.DEBUG)
+                if (main.config.DEBUG)
                     main.getLogger().info("Registering " + mobFile.getName());
 
                 if (!mobYaml.contains("Key")) {
-                    main.getLogger().info(colorize("&c[ERROR] A custom mob MUST specify a Key! e.g: 'example_mob' - Error occured in: " + mobFile.getName()));
+                    Util.log("&c[ERROR] A custom mob MUST specify a Key! e.g: 'example_mob' - Error occurred in: " + mobFile.getName());
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
                 String key = mobYaml.getString("Key");
 
                 if (!mobYaml.contains("BaseEntity")) {
-                    main.getLogger().info(colorize("&c[ERROR] A custom mob MUST specify a Base Entity! e.g: 'ZOMBIE' - Error occured in: " + mobFile.getName()));
+                    Util.log("&c[ERROR] A custom mob MUST specify a Base Entity! e.g: 'ZOMBIE' - Error occurred in: " + mobFile.getName());
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
                 EntityType baseEntity = EntityType.valueOf(mobYaml.getString("BaseEntity"));
                 if (baseEntity == null) {
-                    main.getLogger().info(colorize("&c[ERROR] The specified base entity in " + mobFile.getName() + " is invalid!"));
+                    Util.log("&c[ERROR] The specified base entity in " + mobFile.getName() + " is invalid!");
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
 
                 if (!mobYaml.contains("Name")) {
-                    main.getLogger().info(colorize("&c[ERROR] A custom mob MUST specify a display name! e.g: 'Example Mob' - Error occured in: " + mobFile.getName()));
+                    Util.log("&c[ERROR] A custom mob MUST specify a display name! e.g: 'Example Mob' - Error occurred in: " + mobFile.getName());
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
                 String displayName = mobYaml.getString("Name");
 
                 if (!mobYaml.contains("SpawnChance")) {
-                    main.getLogger().info(colorize("&c[ERROR] A custom mob MUST specify a spawn chance! e.g: 10 - Error occured in: " + mobFile.getName()));
+                    Util.log("&c[ERROR] A custom mob MUST specify a spawn chance! e.g: 10 - Error occurred in: " + mobFile.getName());
+                    errorList.add(Util.latestLog);
                     invalid = true;
                 }
                 int spawnChance = mobYaml.getInt("SpawnChance");
@@ -133,12 +142,14 @@ public class MobManager {
 
                 if (mobYaml.contains("EntitiesToReplace")) {
                     if (mobYaml.getStringList("EntitiesToReplace").size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the EntitiesToReplace module, but didn't populate the armor list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the EntitiesToReplace module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entity : mobYaml.getStringList("EntitiesToReplace")) {
                         EntityType entityType = EntityType.valueOf(entity);
                         if (entityType == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The entity type " + entity + " specified in the EntitesToReplace list is invalid! - Error occured in: " + mobFile.getName()));
+                            Util.log("&c[ERROR] The entity type " + entity + " specified in the EntitesToReplace list is invalid! - Error occurred in: " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         mob.withEntityToReplace(entityType);
@@ -148,11 +159,13 @@ public class MobManager {
                 if (mobYaml.contains("MountInfo")) {
                     EntityType riding = EntityType.valueOf(mobYaml.getString("MountInfo.Riding"));
                     if (riding == null) {
-                        main.getLogger().info(colorize("&c[ERROR] The entity type " + mobYaml.getString("MountInfo.Riding") + " specified in the Riding section of Mount Info is invalid! - Error occured in: " + mobFile.getName()));
+                        Util.log("&c[ERROR] The entity type " + mobYaml.getString("MountInfo.Riding") + " specified in the Riding section of Mount Info is invalid! - Error occurred in: " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     if (!mobYaml.contains("MountInfo.Chance")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the MountInfo! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Chance for the MountInfo! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     int chance = mobYaml.getInt("MountInfo.Chance");
@@ -162,21 +175,25 @@ public class MobManager {
                     if (mobYaml.contains("MountInfo.ArmorInfo")) {
                         List<Material> armorMats = new ArrayList<>();
                         if (!mobYaml.contains("MountInfo.ArmorInfo.Chance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the ArmorInfo in MountInfo! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Chance for the ArmorInfo in MountInfo! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int armorChance = mobYaml.getInt("MountInfo.ArmorInfo.Chance");
                         if (!mobYaml.contains("MountInfo.ArmorInfo.PossibleTypes")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the PossibleTypes for the ArmorInfo in MountInfo! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the PossibleTypes for the ArmorInfo in MountInfo! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (mobYaml.getStringList("MountInfo.ArmorInfo.PossibleTypes").size() < 1) {
-                            main.getLogger().info(colorize("&e[WARNING] You added the ArmorInfo module to the MountInfo module, but didn't populate the armor list! - Error occured in: " + mobFile.getName()));
+                            Util.log("&e[WARNING] You added the ArmorInfo module to the MountInfo module, but didn't populate the armor list! - Warning occurred in: " + mobFile.getName());
+                            warningList.add(Util.latestLog);
                         }
                         for (String matEntry : mobYaml.getStringList("MountInfo.ArmorInfo.PossibleTypes")) {
                             Material armorMat = Material.valueOf(matEntry);
                             if (armorMat.equals(Material.AIR)) {
-                                main.getLogger().info(colorize("&c[ERROR] The material " + matEntry + " specified in the PossibleTypes for Mount Armor Info list is invalid! - Error occured in: " + mobFile.getName()));
+                                Util.log("&c[ERROR] The material " + matEntry + " specified in the PossibleTypes for Mount Armor Info list is invalid! - Error occurred in: " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             armorMats.add(armorMat);
@@ -191,16 +208,22 @@ public class MobManager {
                 if (mobYaml.contains("AlwaysAngry"))
                     mob.withAnger(mobYaml.getBoolean("AlwaysAngry"));
 
-                if (mobYaml.contains("DeathEXP"))
-                    mob.withCustomDeathEXP(mobYaml.getInt("DeathEXP"));
+                if (mobYaml.contains("DeathEXP")) {
+                    if (mobYaml.getList("DeathEXP") != null)
+                        mob.withCustomDeathEXP(mobYaml.getIntegerList("DeathEXP"));
+                    else
+                        mob.withCustomDeathEXP(mobYaml.getInt("DeathEXP"));
+                }
 
                 if (mobYaml.contains("BurnInfo")) {
                     if (!mobYaml.contains("BurnInfo.Enabled")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Enabled value for the BurnInfo! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Enabled value for the BurnInfo! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     if (!mobYaml.contains("BurnInfo.Time")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Time value for the BurnInfo! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Time value for the BurnInfo! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     boolean enabled = mobYaml.getBoolean("BurnInfo.Enabled");
@@ -209,81 +232,150 @@ public class MobManager {
                 }
 
                 if (mobYaml.contains("MaxHP")) {
-                    if(mobYaml.getDouble("MaxHP") > maxServerHealth){
-                        main.getLogger().info(colorize("&e[WARNING] The specified max health " + mobYaml.getDouble("MaxHP") + " is greater than the server max defined within the spigot.yml (" + maxServerHealth + ") the mobs max health has been set to the servers max instead. - Error occured in: " + mobFile.getName()));
-                        mob.withCustomMaxHP((float) maxServerHealth);
+                    if (mobYaml.getList("MaxHP") != null) {
+                        mob.withCustomMaxHP(mobYaml.getDoubleList("MaxHP"));
+                        for (int i = 0; i < mob.maxHPs.size(); i++) {
+                            Double val = mob.maxHPs.get(i);
+                            if (val > maxServerHealth) {
+                                Util.log("&e[WARNING] The specified max health " + val + " at index " + i + " is greater than the server max defined within the spigot.yml (" + maxServerHealth + ") the mobs max health has been set to the servers max instead. - Warning occurred in: " + mobFile.getName());
+                                warningList.add(Util.latestLog);
+                                mob.maxHPs.set(i, maxServerHealth);
+                            }
+                        }
+                    } else {
+                        if (mobYaml.getDouble("MaxHP") > maxServerHealth) {
+                            Util.log("&e[WARNING] The specified max health " + mobYaml.getDouble("MaxHP") + " is greater than the server max defined within the spigot.yml (" + maxServerHealth + ") the mobs max health has been set to the servers max instead. - Warning occurred in: " + mobFile.getName());
+                            warningList.add(Util.latestLog);
+                            mob.withCustomMaxHP(Collections.singletonList(maxServerHealth));
+                        } else mob.withCustomMaxHP(mobYaml.getDouble("MaxHP"));
                     }
-                    else mob.withCustomMaxHP((float) mobYaml.getDouble("MaxHP"));
                 }
 
                 if (mobYaml.contains("MoveSpeed")) {
-                    if(mobYaml.getDouble("MoveSpeed") > maxServerMoveSpeed){
-                        main.getLogger().info(colorize("&e[WARNING] The specified move speed " + mobYaml.getDouble("MoveSpeed") + " is greater than the server max defined within the spigot.yml (" + maxServerMoveSpeed + ") the mobs move speed has been set to the servers max instead. - Error occured in: " + mobFile.getName()));
-                        mob.withCustomMoveSpeed((float) maxServerMoveSpeed);
+                    if (mobYaml.getList("MoveSpeed") != null) {
+                        mob.withCustomMoveSpeed(mobYaml.getDoubleList("MoveSpeed"));
+                        for (int i = 0; i < mob.moveSpeeds.size(); i++) {
+                            Double val = mob.moveSpeeds.get(i);
+                            if (val > maxServerMoveSpeed) {
+                                Util.log("&e[WARNING] The specified move speed " + val + " at index " + i + " is greater than the server max defined within the spigot.yml (" + maxServerMoveSpeed + ") the mobs move speed has been set to the servers max instead. - Warning occurred in: " + mobFile.getName());
+                                warningList.add(Util.latestLog);
+                                mob.maxHPs.set(i, maxServerHealth);
+                            }
+                        }
+                    } else {
+                        if (mobYaml.getDouble("MoveSpeed") > maxServerMoveSpeed) {
+                            Util.log("&e[WARNING] The specified move speed " + mobYaml.getDouble("MoveSpeed") + " is greater than the server max defined within the spigot.yml (" + maxServerMoveSpeed + ") the mobs move speed has been set to the servers max instead. - Warning occurred in: " + mobFile.getName());
+                            warningList.add(Util.latestLog);
+                            mob.withCustomMoveSpeed(Collections.singletonList(maxServerMoveSpeed));
+                        } else mob.withCustomMoveSpeed(mobYaml.getDouble("MoveSpeed"));
                     }
-                    else mob.withCustomMoveSpeed((float) mobYaml.getDouble("MoveSpeed"));
                 }
 
-                if(mobYaml.contains("AttackDamage")){
-                    if(mobYaml.getDouble("AttackDamage") > maxServerMoveSpeed){
-                        main.getLogger().info(colorize("&e[WARNING] The specified attack damage " + mobYaml.getDouble("AttackDamage") + " is greater than the server max defined within the spigot.yml (" + maxServerAttackDamage + ") the mobs attack damage has been set to the servers max instead. - Error occured in: " + mobFile.getName()));
-                        mob.withCustomAttackDamage((float) maxServerAttackDamage);
+                if (mobYaml.contains("AttackDamage")) {
+                    if (mobYaml.getList("AttackDamage") != null) {
+                        mob.withCustomMaxHP(mobYaml.getDoubleList("AttackDamage"));
+                        for (int i = 0; i < mob.attackDamages.size(); i++) {
+                            Double val = mob.attackDamages.get(i);
+                            if (val > maxServerAttackDamage) {
+                                Util.log("&e[WARNING] The specified attack damage " + val + " at index " + i + " is greater than the server max defined within the spigot.yml (" + maxServerAttackDamage + ") the mobs attack damage has been set to the servers max instead. - Warning occurred in: " + mobFile.getName());
+                                warningList.add(Util.latestLog);
+                                mob.maxHPs.set(i, maxServerHealth);
+                            }
+                        }
+                    } else {
+                        if (mobYaml.getDouble("AttackDamage") > maxServerMoveSpeed) {
+                            Util.log("&e[WARNING] The specified attack damage " + mobYaml.getDouble("AttackDamage") + " is greater than the server max defined within the spigot.yml (" + maxServerAttackDamage + ") the mobs attack damage has been set to the servers max instead. - Warning occurred in: " + mobFile.getName());
+                            warningList.add(Util.latestLog);
+                            mob.withCustomAttackDamage(Collections.singletonList(maxServerAttackDamage));
+                        } else mob.withCustomAttackDamage(mobYaml.getDouble("AttackDamage"));
                     }
-                    else mob.withCustomAttackDamage((float) mobYaml.getDouble("AttackDamage"));
                 }
 
-                if(mobYaml.contains("AttackKnockback"))
-                    mob.withCustomAttackKnockback((float) mobYaml.getDouble("AttackKnockback"));
+                if (mobYaml.contains("AttackKnockback")) {
+                    if (mobYaml.getList("AttackKnockback") != null)
+                        mob.withCustomAttackKnockback(mobYaml.getDoubleList("AttackKnockback"));
+                    else
+                        mob.withCustomAttackKnockback(mobYaml.getDouble("AttackKnockback"));
+                }
 
-                if(mobYaml.contains("KnockbackResistance"))
-                    mob.withCustomKnockbackResistance((float) mobYaml.getDouble("KnockbackResistance"));
+                if (mobYaml.contains("KnockbackResistance")) {
+                    if (mobYaml.getList("KnockbackResistance") != null)
+                        mob.withCustomKnockbackResistance(mobYaml.getDoubleList("KnockbackResistance"));
+                    else
+                        mob.withCustomKnockbackResistance(mobYaml.getDouble("KnockbackResistance"));
+                }
 
-                if(mobYaml.contains("Armor"))
-                    mob.withCustomArmor((float) mobYaml.getDouble("Armor"));
+                if (mobYaml.contains("Armor")) {
+                    if (mobYaml.getList("Armor") != null)
+                        mob.withCustomArmor(mobYaml.getDoubleList("Armor"));
+                    else
+                        mob.withCustomArmor(mobYaml.getDouble("Armor"));
+                }
 
-                if(mobYaml.contains("ArmorToughness"))
-                    mob.withCustomArmorToughness((float) mobYaml.getDouble("ArmorToughness"));
+                if (mobYaml.contains("ArmorToughness")) {
+                    if (mobYaml.getList("ArmorToughness") != null)
+                        mob.withCustomArmorToughness(mobYaml.getDoubleList("ArmorToughness"));
+                    else
+                        mob.withCustomArmorToughness(mobYaml.getDouble("ArmorToughness"));
+                }
 
-                if(mobYaml.contains("FlySpeed"))
-                    mob.withCustomFlySpeed((float) mobYaml.getDouble("FlySpeed"));
+                if (mobYaml.contains("FlySpeed")) {
+                    if (mobYaml.getList("FlySpeed") != null)
+                        mob.withCustomFlySpeed(mobYaml.getDoubleList("FlySpeed"));
+                    else
+                        mob.withCustomFlySpeed(mobYaml.getDouble("FlySpeed"));
+                }
 
-                if(mobYaml.contains("FollowRange"))
-                    mob.withCustomFollowRange((float) mobYaml.getDouble("FollowRange"));
+                if (mobYaml.contains("FollowRange")) {
+                    if (mobYaml.getList("FollowRange") != null)
+                        mob.withCustomFollowRange(mobYaml.getDoubleList("FollowRange"));
+                    else
+                        mob.withCustomFollowRange(mobYaml.getDouble("FollowRange"));
+                }
 
-                if(mobYaml.contains("JumpStrength"))
+                if (mobYaml.contains("JumpStrength"))
                     mob.withCustomJumpStrength((float) mobYaml.getDouble("JumpStrength"));
 
                 if (mobYaml.contains("ValidSpawnEnvironments")) {
                     if (mobYaml.getStringList("ValidSpawnEnvironments").size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the ValidSpawnEnvironments module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the ValidSpawnEnvironments module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String env : mobYaml.getStringList("ValidSpawnEnvironments")) {
                         mob.withValidSpawnWorld(env);
                     }
                 }
 
+                if (mobYaml.contains("SpawnNaturally"))
+                    mob.spawnNaturally(mobYaml.getBoolean("SpawnNaturally"));
+
                 if (mobYaml.contains("HitEffects")) {
                     List<MVPotionEffect> potionEffectList = new ArrayList<>();
                     if (mobYaml.getConfigurationSection("HitEffects").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the DropsToRemove module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the DropsToRemove module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : mobYaml.getConfigurationSection("HitEffects").getKeys(false)) {
                         ConfigurationSection potSection = mobYaml.getConfigurationSection("HitEffects." + entry);
                         PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                         if (potionEffectType == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + mobFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " is invalid! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Amplifier")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Duration")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Chance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int amp = potSection.getInt("Amplifier");
@@ -300,19 +392,23 @@ public class MobManager {
 
                 if (mobYaml.contains("DeathExplosion")) {
                     if (!mobYaml.contains("DeathExplosion.Enabled")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Enabled value for the DeathExplosion! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Enabled value for the DeathExplosion! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     if (!mobYaml.contains("DeathExplosion.Chance")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Chance value for the DeathExplosion! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Chance value for the DeathExplosion! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     if (!mobYaml.contains("DeathExplosion.Size")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Size value for the DeathExplosion! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Size value for the DeathExplosion! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     if (!mobYaml.contains("DeathExplosion.CreateFire")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the CreateFire value for the DeathExplosion! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the CreateFire value for the DeathExplosion! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     mob.withDeathExplosion(mobYaml.getBoolean("DeathExplosion.Enabled"),
@@ -322,12 +418,14 @@ public class MobManager {
                 }
                 if (mobYaml.contains("DropsToRemove")) {
                     if (mobYaml.getStringList("DropsToRemove").size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the DropsToRemove module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the DropsToRemove module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String matEnt : mobYaml.getStringList("DropsToRemove")) {
                         Material mat = Material.valueOf(matEnt);
                         if (mat.equals(Material.AIR)) {
-                            main.getLogger().info(colorize("&c[ERROR] The material " + matEnt + " specified in the DropsToRemove list is invalid! - Error occured in: " + mobFile.getName()));
+                            Util.log("&c[ERROR] The material " + matEnt + " specified in the DropsToRemove list is invalid! - Error occurred in: " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         mob.withDropToRemove(mat);
@@ -336,17 +434,20 @@ public class MobManager {
 
                 if (mobYaml.contains("Drops")) {
                     if (mobYaml.getConfigurationSection("Drops").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the Drops module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the Drops module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : mobYaml.getConfigurationSection("Drops").getKeys(false)) {
                         ConfigurationSection entrySec = mobYaml.getConfigurationSection("Drops." + entry);
                         ItemChance item = new ItemChance();
                         if (!entrySec.contains("Chance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance value for the Drop " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Chance value for the Drop " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!entrySec.contains("Item")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Item value for the Drop " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Item value for the Drop " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         float chance = (float) entrySec.getDouble("Chance");
@@ -355,14 +456,16 @@ public class MobManager {
                             item.item = ItemManager.getItem(entrySec.getString("Item").replace("monstrorvm:", ""));
 
                             if (item.item == null) {
-                                main.getLogger().info(colorize("&c[ERROR] The custom item " + entrySec.getString("Item") + " specified in the Item in the Drops is invalid! - Error occured in: " + mobFile.getName()));
+                                Util.log("&c[ERROR] The custom item " + entrySec.getString("Item") + " specified in the Item in the Drops is invalid! - Error occurred in: " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                         } else {
                             try {
                                 item.nItem = Material.valueOf(entrySec.getString("Item"));
                             } catch (IllegalArgumentException ex) {
-                                main.getLogger().info(colorize("&c[ERROR] The material " + entrySec.getString("Item") + " specified in the Item in the Drops is invalid! - Error occured in: " + mobFile.getName()));
+                                Util.log("&c[ERROR] The material " + entrySec.getString("Item") + " specified in the Item in the Drops is invalid! - Error occurred in: " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                         }
@@ -384,17 +487,20 @@ public class MobManager {
 
                 if (mobYaml.contains("Equipment")) {
                     if (mobYaml.getConfigurationSection("Equipment").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the Equipment module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the Equipment module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String entry : mobYaml.getConfigurationSection("Equipment").getKeys(false)) {
                         ConfigurationSection entrySec = mobYaml.getConfigurationSection("Equipment." + entry);
                         ItemChance item = new ItemChance();
                         if (!entrySec.contains("DropChance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the DropChance value for the Equipment " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the DropChance value for the Equipment " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!entrySec.contains("Item")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Item value for the Equipment " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Item value for the Equipment " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         float chance = (float) entrySec.getDouble("DropChance");
@@ -403,14 +509,16 @@ public class MobManager {
                             item.item = ItemManager.getItem(entrySec.getString("Item").replace("monstrorvm:", ""));
 
                             if (item.item == null) {
-                                main.getLogger().info(colorize("&c[ERROR] The custom item " + entrySec.getString("Item") + " specified in the Drops is invalid! - Error occured in: " + mobFile.getName()));
+                                Util.log("&c[ERROR] The custom item " + entrySec.getString("Item") + " specified in the Drops is invalid! - Error occurred in: " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                         } else {
                             try {
                                 item.nItem = Material.valueOf(entrySec.getString("Item"));
                             } catch (IllegalArgumentException ex) {
-                                main.getLogger().info(colorize("&c[ERROR] The material " + entrySec.getString("Item") + " specified the Drops is invalid! - Error occured in: " + mobFile.getName()));
+                                Util.log("&c[ERROR] The material " + entrySec.getString("Item") + " specified the Drops is invalid! - Error occurred in: " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                         }
@@ -439,7 +547,8 @@ public class MobManager {
                         else if (entry.toLowerCase().equals("offhand"))
                             mob.withOffhandItem(item);
                         else {
-                            main.getLogger().info(colorize("&c[ERROR] The Slot " + entry + " specified in the Equipment is invalid! - Error occured in: " + mobFile.getName()));
+                            Util.log("&c[ERROR] The Slot " + entry + " specified in the Equipment is invalid! - Error occurred in: " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                     }
@@ -448,25 +557,30 @@ public class MobManager {
                 if (mobYaml.contains("SpawnEffects")) {
                     List<MVPotionEffect> potionEffectList = new ArrayList<>();
                     if (mobYaml.getConfigurationSection("SpawnEffects").getKeys(false).size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the SpawnEffects module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the SpawnEffects module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                     }
                     for (String entry : mobYaml.getConfigurationSection("SpawnEffects").getKeys(false)) {
                         ConfigurationSection potSection = mobYaml.getConfigurationSection("SpawnEffects." + entry);
                         PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                         if (potionEffectType == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + mobFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " in " + mobFile.getName() + " is invalid!");
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Amplifier")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Duration")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!potSection.contains("Chance")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int amp = potSection.getInt("Amplifier");
@@ -485,23 +599,27 @@ public class MobManager {
                     MVParticle targetPartInfo = null;
                     MVSound targetSoundInfo = null;
                     if (!mobYaml.contains("TargetEffect.Chance")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the TargetEffect! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Chance for the TargetEffect! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     int effectChance = mobYaml.getInt("TargetEffect.Chance");
                     if (mobYaml.contains("TargetEffect.ParticleInfo")) {
                         ConfigurationSection partInfoSec = mobYaml.getConfigurationSection("TargetEffect.ParticleInfo");
                         if (!partInfoSec.contains("Particle")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Particle for the ParticleInfo in TargetEffect! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Particle for the ParticleInfo in TargetEffect! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         Particle targetPart = Particle.valueOf(partInfoSec.getString("Particle"));
                         if (targetPart == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified ParticleEffectType for TargetEffect  in " + mobFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified ParticleEffectType for TargetEffect is invalid! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         if (!partInfoSec.contains("Amount")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Particle Amount for the TargetEffect! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Particle Amount for the TargetEffect! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         int targetPartAmount = partInfoSec.getInt("Amount");
@@ -514,28 +632,33 @@ public class MobManager {
                         ConfigurationSection soundInfoSec = mobYaml.getConfigurationSection("TargetEffect.SoundInfo");
 
                         if (!soundInfoSec.contains("Sound")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Sound for the Sound Info in TargetEffect! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Sound for the Sound Info in TargetEffect! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
 
                         Sound targetSound = Sound.valueOf(soundInfoSec.getString("Sound"));
                         if (targetSound == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified Sound for TargetEffect  in " + mobFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified Sound for TargetEffect is invalid! Error occurred in " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         SoundCategory targetSoundCategory = SoundCategory.valueOf(soundInfoSec.getString("Category"));
                         if (targetSoundCategory == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The specified SoundCategory for TargetEffect  in " + mobFile.getName() + " is invalid!"));
+                            Util.log("&c[ERROR] The specified SoundCategory for TargetEffect is invalid! Error occurred in: " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
 
                         if (!soundInfoSec.contains("Volume")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Volume for the SoundInfo in TargetEffect! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Volume for the SoundInfo in TargetEffect! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
 
                         if (!soundInfoSec.contains("Pitch")) {
-                            main.getLogger().info(colorize("&c[ERROR] You are missing the Pitch for the SoundInfo in TargetEffect! Error occured in -  " + mobFile.getName()));
+                            Util.log("&c[ERROR] You are missing the Pitch for the SoundInfo in TargetEffect! Error occurred in:  " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
 
@@ -548,25 +671,30 @@ public class MobManager {
                     List<MVPotionEffect> selfEffects = new ArrayList<>();
                     if (mobYaml.contains("TargetEffect.SelfEffects")) {
                         if (mobYaml.getConfigurationSection("TargetEffect.SelfEffects").getKeys(false).size() < 1) {
-                            main.getLogger().info(colorize("&e[WARNING] You added the SelEffects module to the TargetEffect module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                            Util.log("&e[WARNING] You added the SelEffects module to the TargetEffect module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                            warningList.add(Util.latestLog);
                         }
                         for (String entry : mobYaml.getConfigurationSection("TargetEffect.SelfEffects").getKeys(false)) {
                             ConfigurationSection potSection = mobYaml.getConfigurationSection("TargetEffect.SelfEffects." + entry);
                             PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                             if (potionEffectType == null) {
-                                main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + mobFile.getName() + " is invalid!"));
+                                Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " is invalid! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Amplifier")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Duration")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Chance")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             int amp = potSection.getInt("Amplifier");
@@ -580,25 +708,30 @@ public class MobManager {
                     List<MVPotionEffect> targetEffects = new ArrayList<>();
                     if (mobYaml.contains("TargetEffect.TargetEffects")) {
                         if (mobYaml.getConfigurationSection("TargetEffect.TargetEffects").getKeys(false).size() < 1) {
-                            main.getLogger().info(colorize("&e[WARNING] You added the TargetEffects module to the TargetEffect module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                            Util.log("&e[WARNING] You added the TargetEffects module to the TargetEffect module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                            warningList.add(Util.latestLog);
                         }
                         for (String entry : mobYaml.getConfigurationSection("TargetEffect.TargetEffects").getKeys(false)) {
                             ConfigurationSection potSection = mobYaml.getConfigurationSection("TargetEffect.TargetEffects." + entry);
                             PotionEffectType potionEffectType = PotionEffectType.getByName(entry);
                             if (potionEffectType == null) {
-                                main.getLogger().info(colorize("&c[ERROR] The specified PotionEffectType for " + entry + " in " + mobFile.getName() + " is invalid!"));
+                                Util.log("&c[ERROR] The specified PotionEffectType for " + entry + " is invalid! Error occurred in: " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Amplifier")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Amplifier for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Duration")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Duration for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             if (!potSection.contains("Chance")) {
-                                main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occured in -  " + mobFile.getName()));
+                                Util.log("&c[ERROR] You are missing the Chance for the PotionEffect " + entry + "! Error occurred in:  " + mobFile.getName());
+                                errorList.add(Util.latestLog);
                                 invalid = true;
                             }
                             int amp = potSection.getInt("Amplifier");
@@ -614,11 +747,13 @@ public class MobManager {
 
                 if (mobYaml.contains("BabyInfo")) {
                     if (!mobYaml.contains("BabyInfo.CanBeBaby")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the CanBeBaby for the BabyInfo! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the CanBeBaby for the BabyInfo! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     if (!mobYaml.contains("BabyInfo.Chance")) {
-                        main.getLogger().info(colorize("&c[ERROR] You are missing the Chance for the BabyInfo! Error occured in -  " + mobFile.getName()));
+                        Util.log("&c[ERROR] You are missing the Chance for the BabyInfo! Error occurred in:  " + mobFile.getName());
+                        errorList.add(Util.latestLog);
                         invalid = true;
                     }
                     mob.setBaby(new BabyInfo(mobYaml.getBoolean("BabyInfo.CanBeBaby"), mobYaml.getInt("BabyInfo.Chance")));
@@ -626,12 +761,14 @@ public class MobManager {
 
                 if (mobYaml.contains("ValidTargets")) {
                     if (mobYaml.getStringList("ValidTargets").size() < 1) {
-                        main.getLogger().info(colorize("&e[WARNING] You added the ValidTargets module, but didn't populate the list! - Error occured in: " + mobFile.getName()));
+                        Util.log("&e[WARNING] You added the ValidTargets module, but didn't populate the list! - Warning occurred in: " + mobFile.getName());
+                        warningList.add(Util.latestLog);
                     }
                     for (String targ : mobYaml.getStringList("ValidTargets")) {
                         EntityType ent = EntityType.valueOf(targ);
                         if (ent == null) {
-                            main.getLogger().info(colorize("&c[ERROR] The EntityType " + targ + " specified in the ValidTargets list is invalid! - Error occured in: " + mobFile.getName()));
+                            Util.log("&c[ERROR] The EntityType " + targ + " specified in the ValidTargets list is invalid! - Error occurred in: " + mobFile.getName());
+                            errorList.add(Util.latestLog);
                             invalid = true;
                         }
                         mob.withPossibleTarget(ent);
@@ -646,7 +783,7 @@ public class MobManager {
                     } else
                         registerNewMob(mob, null);
                 } else {
-                    main.getLogger().info(colorize("&e[WARNING] The custom mob " + mobFile.getName() + " has not been registered due to errors!"));
+                    Util.log("&e[WARNING] The custom mob " + mobFile.getName() + " has not been registered due to errors!");
                 }
             }
         }

@@ -1,37 +1,30 @@
 package com.github.steeldev.monstrorvm;
 
 import com.github.steeldev.monstrorvm.commands.admin.*;
-import com.github.steeldev.monstrorvm.listeners.inventory.MVtemListInventory;
+import com.github.steeldev.monstrorvm.listeners.inventory.MVItemListInventory;
 import com.github.steeldev.monstrorvm.listeners.server.PlayerJoin;
 import com.github.steeldev.monstrorvm.listeners.world.MVWorldListener;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
 import com.github.steeldev.monstrorvm.managers.MobManager;
 import com.github.steeldev.monstrorvm.util.MVLogger;
-import com.github.steeldev.monstrorvm.util.UpdateCheck;
+import com.github.steeldev.monstrorvm.util.Message;
+import com.github.steeldev.monstrorvm.util.UpdateChecker;
+import com.github.steeldev.monstrorvm.util.Util;
 import com.github.steeldev.monstrorvm.util.config.Config;
-import com.github.steeldev.monstrorvm.util.config.Lang;
-import com.github.steeldev.monstrorvm.util.items.MVItem;
-import com.github.steeldev.monstrorvm.util.items.mvitems.DebugStick;
 import de.tr7zw.changeme.nbtapi.NBTItem;
 import de.tr7zw.changeme.nbtapi.utils.MinecraftVersion;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 public class Monstrorvm extends JavaPlugin {
     private static Monstrorvm instance;
     public Config config = null;
-    public Lang lang = null;
-    public boolean outdated;
-    public String newVersion;
+    public UpdateChecker versionManager;
 
     public Logger logger;
 
@@ -61,87 +54,53 @@ public class Monstrorvm extends JavaPlugin {
         MobManager.init();
         registerListeners();
         ItemManager.registerCustomItems();
-        if(Config.DEBUG) {
-            ItemManager.registerNewItem(new MVItem("mv_debug_stick", Material.BLAZE_ROD)
-                    .withDisplayName("&5Monstrorvm Debug Stick")
-                    .withLore("&cFor development purposes.")
-                    .withLore("&7Right click a mob to view information.")
-                    .withLore("&7Right click a block to view information.")
-                    .withLore("&7Right click in off-hand with item in main-hand to view information."), this);
-            getServer().getPluginManager().registerEvents(new DebugStick(), this);
-        }
         MobManager.registerCustomMobs();
         registerCommands();
-        registerInventoryListeners();
-
         enableMetrics();
 
-        getLogger().info(String.format("&aSuccessfully enabled &2%s &ain &e%s Seconds&a.", getDescription().getVersion(), (float) (System.currentTimeMillis() - start) / 1000));
+        Message.PLUGIN_ENABLED.log(getDescription().getVersion(), (float) (System.currentTimeMillis() - start) / 1000);
 
-        checkForNewVersion();
+        versionManager = new UpdateChecker(this, 85464);
+        versionManager.checkForNewVersion();
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("&cSuccessfully disabled!");
+        Message.PLUGIN_DISABLED.log();
         instance = null;
     }
 
-    public void checkForNewVersion() {
-        getLogger().info("&e&oChecking for a new version...");
-        new UpdateCheck(this, 85464).getVersion(version -> {
-            int latestVersion = Integer.parseInt(version.replaceAll("\\.", ""));
-            int currentVersion = Integer.parseInt(this.getDescription().getVersion().replaceAll("\\.", ""));
-
-            if (currentVersion == latestVersion) {
-                outdated = false;
-                getLogger().info(String.format("&2&oYou are on the latest version! &7&o(%s)", version));
-            } else if (currentVersion > latestVersion) {
-                outdated = false;
-                getLogger().info(String.format("&e&oYou are on an in-dev preview version! &7&o(%s)", this.getDescription().getVersion()));
-            } else {
-                outdated = true;
-                newVersion = version;
-                getLogger().info(String.format("&a&oA new version is available! &7&o(Current: %s, Latest: %s)", this.getDescription().getVersion(), version));
-                getLogger().info("&e&ohttps://www.spigotmc.org/resources/monstrorvm.85464/");
-            }
-        });
-    }
-
     public void loadNBTAPI() {
-        getLogger().info("&aLoading NBT-API...");
+        Message.LOADING_NBT_API.log();
         NBTItem loadingItem = new NBTItem(new ItemStack(Material.STONE));
         loadingItem.addCompound("Glob");
         loadingItem.setString("Glob", "yes");
-        getLogger().info("&aSuccessfully loaded NBT-API!");
+        Message.NBT_API_LOADED.log();
     }
 
     public void loadCustomConfigs() {
         this.config = new Config(this);
-        this.lang = new Lang(this);
     }
 
     public void enableMetrics() {
         Metrics metrics = new Metrics(this, 9288);
 
         if (metrics.isEnabled())
-            getLogger().info("&7Starting Metrics. Opt-out using the global bStats config.");
+            Message.STARTING_METRICS.log();
     }
 
     public void registerCommands() {
-        this.getCommand("listmonstrorvmitems").setExecutor(new ListMVItems());
-        this.getCommand("givemonstrorvmitem").setExecutor(new GiveMVItem());
-        this.getCommand("spawnmonstrorvmmob").setExecutor(new SpawnMVMob());
-        this.getCommand("killallmonstrorvmmobs").setExecutor(new KillAllMVMobs());
-        this.getCommand("monstrorvmreload").setExecutor(new MVReload());
-    }
-
-    public void registerInventoryListeners() {
-        getServer().getPluginManager().registerEvents(new MVtemListInventory(), this);
+        Util.registerCommand("listmonstrorvmitems", new ListMVItems());
+        Util.registerCommand("givemonstrorvmitem", new GiveMVItem());
+        Util.registerCommand("spawnmonstrorvmmob", new SpawnMVMob());
+        Util.registerCommand("killallmonstrorvmmobs", new KillAllMVMobs());
+        Util.registerCommand("monstrorvmreload", new MVReload());
+        Util.registerCommand("monstrorvmdocumentation", new MVDocs());
     }
 
     public void registerListeners() {
-        getServer().getPluginManager().registerEvents(new MVWorldListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoin(),this);
+        Util.registerEvent(new MVWorldListener());
+        Util.registerEvent(new PlayerJoin());
+        Util.registerEvent(new MVItemListInventory());
     }
 }

@@ -2,7 +2,7 @@ package com.github.steeldev.monstrorvm.commands.admin;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.MobManager;
-import com.github.steeldev.monstrorvm.util.config.Lang;
+import com.github.steeldev.monstrorvm.util.Message;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,8 +14,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
-
 public class KillAllMVMobs implements CommandExecutor {
     Monstrorvm main = Monstrorvm.getInstance();
 
@@ -24,7 +22,7 @@ public class KillAllMVMobs implements CommandExecutor {
         if (sender instanceof Player) {
             int entityAmount = MobManager.getSpawnedMobs().size();
             if (entityAmount == 0) {
-                sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_MOBS_KILL_FAILED_MSG)));
+                Message.MOB_KILL_FAILED.send(sender, true);
                 return true;
             }
 
@@ -37,9 +35,9 @@ public class KillAllMVMobs implements CommandExecutor {
                 }
             }
 
-            sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_MOBS_KILLED_MSG.replaceAll("MOBAMOUNT", String.valueOf(entityAmount)))));
+            Message.MOBS_KILLED.send(sender, true, entityAmount);
         } else {
-            sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.PLAYERS_ONLY_MSG)));
+            Message.ONLY_PLAYERS_CAN_EXECUTE.send(sender, true);
         }
         return true;
     }

@@ -3,10 +3,9 @@
 #   a development option, put here for ease of development.
 Debug: true
 
-ExamplesEnabled: true
+Prefix: '&2Monstrorvm &7» '
 
-# What language should the plugin use?
-Language: English
+ExamplesEnabled: true
 
 UpdateCheck:
   # Should the plugin notify OPs/Players with the plugins admin perm

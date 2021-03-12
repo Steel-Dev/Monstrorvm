@@ -2,7 +2,7 @@ package com.github.steeldev.monstrorvm.commands.admin;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.ItemManager;
-import com.github.steeldev.monstrorvm.util.config.Lang;
+import com.github.steeldev.monstrorvm.util.Message;
 import com.github.steeldev.monstrorvm.util.items.MVItem;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,8 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
 
 public class GiveMVItem implements CommandExecutor, TabCompleter {
     Monstrorvm main = Monstrorvm.getInstance();
@@ -33,7 +31,7 @@ public class GiveMVItem implements CommandExecutor, TabCompleter {
                 try {
                     amount = Integer.parseInt(args[1]);
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(colorize(String.format("%s&cExpected a number.", Lang.PREFIX)));
+                    Message.EXPECTED_NUMBER.send(sender, true);
                     return true;
                 }
             }
@@ -41,12 +39,12 @@ public class GiveMVItem implements CommandExecutor, TabCompleter {
                 if (main.getServer().getPlayer(args[2]) != null) {
                     specifiedPlayer = main.getServer().getPlayer(args[2]);
                 } else {
-                    sender.sendMessage(colorize(Lang.PREFIX + Lang.INVALID_PLAYER_MSG));
+                    Message.PLAYER_NOT_ONLINE.send(sender, true);
                     return true;
                 }
             }
             if (specifiedPlayer == null) {
-                sender.sendMessage(colorize(Lang.PREFIX + Lang.INVALID_PLAYER_MSG));
+                Message.PLAYER_NOT_ONLINE.send(sender, true);
                 return true;
             }
             if (specifiedItem != null) {
@@ -55,14 +53,14 @@ public class GiveMVItem implements CommandExecutor, TabCompleter {
                     for (int i = 0; i < amount; i++) {
                         specifiedPlayer.getInventory().addItem(item);
                     }
-                    sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_GIVEN_MSG.replace("ITEMNAME", specifiedItem.displayName).replace("PLAYERNAME", specifiedPlayer.getDisplayName()).replace("ITEMAMOUNT", String.valueOf(amount)))));
+                    Message.GIVEN_ITEM.send(sender, true, amount, specifiedItem.displayName, specifiedPlayer.getDisplayName());
                 } else
-                    sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_PLAYER_INVENTORY_FULL_MSG.replace("ITEMNAME", specifiedItem.displayName).replace("PLAYERNAME", specifiedPlayer.getDisplayName()).replace("ITEMAMOUNT", String.valueOf(amount)))));
+                    Message.GIVE_ITEM_FAIL_FULL_INV.send(sender, true, amount, specifiedItem.displayName, specifiedPlayer.getDisplayName());
             } else {
-                sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_ITEM_INVALID_MSG.replaceAll("ITEMID", args[0]))));
+                Message.ITEM_DOESNT_EXIST.send(sender, true, args[0]);
             }
         } else {
-            sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.PLAYERS_ONLY_MSG)));
+            Message.ONLY_PLAYERS_CAN_EXECUTE.send(sender, true);
         }
         return true;
     }

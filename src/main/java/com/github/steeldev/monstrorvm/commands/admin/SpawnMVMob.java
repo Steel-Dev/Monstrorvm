@@ -2,9 +2,8 @@ package com.github.steeldev.monstrorvm.commands.admin;
 
 import com.github.steeldev.monstrorvm.Monstrorvm;
 import com.github.steeldev.monstrorvm.managers.MobManager;
-import com.github.steeldev.monstrorvm.util.config.Lang;
+import com.github.steeldev.monstrorvm.util.Message;
 import com.github.steeldev.monstrorvm.util.mobs.MVMob;
-import org.bukkit.Difficulty;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.github.steeldev.monstrorvm.util.Util.colorize;
-
 public class SpawnMVMob implements CommandExecutor, TabCompleter {
     Monstrorvm main = Monstrorvm.getInstance();
 
@@ -29,17 +26,18 @@ public class SpawnMVMob implements CommandExecutor, TabCompleter {
             MVMob specifiedMob = MobManager.getMob(args[0]);
             if (specifiedMob != null) {
                 Player player = (Player) sender;
-                if (!player.getWorld().getDifficulty().equals(Difficulty.PEACEFUL)) {
+                try {
                     specifiedMob.spawnMob(player.getLocation(), null);
-                    sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_MOB_SPAWNED_MSG.replace("MOBNAME", specifiedMob.entityName))));
-                } else {
-                    sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_MOB_SPAWN_FAILED_MSG.replaceAll("MOBNAME", specifiedMob.entityName))));
+                    Message.MOB_SPAWNED.send(sender, true, specifiedMob.entityName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Message.MOB_FAILED_SPAWNED.send(sender, true, specifiedMob.entityName);
                 }
             } else {
-                sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.CUSTOM_MOB_INVALID_MSG.replaceAll("MOBID", args[0]))));
+                Message.MOB_NOT_VALID.send(sender, true, args[0]);
             }
         } else {
-            sender.sendMessage(colorize(String.format("%s%s", Lang.PREFIX, Lang.PLAYERS_ONLY_MSG)));
+            Message.ONLY_PLAYERS_CAN_EXECUTE.send(sender, true);
         }
         return true;
     }

@@ -12,12 +12,13 @@ import static com.github.steeldev.monstrorvm.util.Util.colorize;
 
 public class PlayerJoin implements Listener {
     Monstrorvm main = Monstrorvm.getInstance();
+
     @EventHandler
-    public void onJoin(PlayerJoinEvent e){
+    public void onJoin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
 
-        if(!main.recipesRegistered){
-            Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> player.kickPlayer(colorize(Util.getPrefix() + "&cStill registering item recipes! You have been kicked to avoid any errors, join back in a few seconds!")),10l);
+        if (!main.recipesRegistered) {
+            Bukkit.getScheduler().scheduleSyncDelayedTask(main, () -> player.kickPlayer(colorize(Util.getPrefix() + "&cStill registering item recipes! You have been kicked to avoid any errors, join back in a few seconds!")), 10l);
         }
     }
 }
